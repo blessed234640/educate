@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Educa - Modern Learning Platform{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="page-wrapper">
+        <header class="header">
+            <div class="header-container">
+                <a href="/" class="logo">
+                    <i class="fas fa-graduation-cap logo-icon"></i>
+                    <span class="logo-text">Educa</span>
+                </a>
+                <nav class="nav-menu">
+                    <ul class="menu-list">
+                        {% if request.user.is_authenticated %}
+                        <li class="menu-item">
+                            <form action="{% url 'logout' %}" method="post" class="logout-form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-logout">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Sign Out</span>
+                                </button>
+                            </form>
+                        </li>
+                        {% else %}
+                        <li class="menu-item">
+                            <a href="{% url 'login' %}" class="btn-login">
+                                <i class="fas fa-sign-in-alt"></i>
+                                <span>Sign In</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="content-container">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-container">
+                <p class="footer-text">© {% now "Y" %} Educa Learning Platform. All rights reserved.</p>
+                <p class="footer-subtext">Empowering education through technology</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // DOM loaded
+            {% block domready %}
+            {% endblock %}
+        })
+    </script>
+</body>
+</html>

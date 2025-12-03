@@ -1056,3 +1056,296 @@ textarea.form-control {
         margin-bottom: var(--spacing-xs);
     }
 }
+/* Formset Styles */
+.course-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-xl);
+}
+
+.course-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    border-radius: var(--radius-lg);
+    flex-shrink: 0;
+}
+
+.course-icon i {
+    color: white;
+    font-size: 1.5rem;
+}
+
+.course-info h2 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.course-meta {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+}
+
+.meta-item i {
+    color: var(--primary-light);
+    font-size: 0.75rem;
+}
+
+/* Formset Items */
+.formset-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.formset-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all var(--transition-normal);
+}
+
+.formset-item.deleted {
+    opacity: 0.6;
+    background: rgba(239, 68, 68, 0.05);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.formset-item.dragging {
+    box-shadow: var(--shadow-lg);
+    transform: scale(1.02);
+    z-index: 10;
+}
+
+.formset-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.item-number {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.handle {
+    color: var(--text-light);
+    cursor: move;
+    transition: color var(--transition-fast);
+}
+
+.handle:hover {
+    color: var(--primary-color);
+}
+
+.item-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-icon:hover {
+    background: var(--error-color);
+    color: white;
+    border-color: var(--error-color);
+}
+
+.formset-item-body {
+    padding: var(--spacing-lg);
+}
+
+/* Formset Form Fields */
+.formset-item .form-field {
+    margin-bottom: var(--spacing-md);
+}
+
+.formset-item .form-field:last-child {
+    margin-bottom: 0;
+}
+
+.formset-item .form-label {
+    font-size: 0.875rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.formset-item .form-control {
+    background: var(--bg-primary);
+}
+
+/* Delete Checkbox */
+.delete-field {
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px dashed var(--border-color);
+}
+
+.delete-checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.delete-checkbox input[type="checkbox"] {
+    display: none;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-custom {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-primary);
+    position: relative;
+    transition: all var(--transition-fast);
+}
+
+.checkbox-custom::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.delete-checkbox input[type="checkbox"]:checked + .checkbox-label .checkbox-custom {
+    background: var(--error-color);
+    border-color: var(--error-color);
+}
+
+.delete-checkbox input[type="checkbox"]:checked + .checkbox-label .checkbox-custom::after {
+    opacity: 1;
+}
+
+.checkbox-text {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    transition: color var(--transition-fast);
+}
+
+.delete-checkbox input[type="checkbox"]:checked + .checkbox-label .checkbox-text {
+    color: var(--error-color);
+    font-weight: 500;
+}
+
+/* Formset Actions */
+.formset-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--spacing-xl);
+    border-top: 1px solid var(--border-color);
+}
+
+.primary-actions {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.btn-add-module {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-xl);
+}
+
+.btn-add-module:hover {
+    background: var(--secondary-color);
+    color: white;
+}
+
+.btn-save {
+    padding: var(--spacing-md) var(--spacing-2xl);
+}
+
+/* Responsive Design for Formset */
+@media (max-width: 768px) {
+    .course-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .course-meta {
+        justify-content: center;
+    }
+    
+    .formset-actions {
+        flex-direction: column;
+        gap: var(--spacing-lg);
+    }
+    
+    .primary-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-add-module,
+    .btn-save,
+    .formset-actions .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .formset-item-header {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        align-items: flex-start;
+    }
+    
+    .item-actions {
+        align-self: flex-end;
+    }
+}

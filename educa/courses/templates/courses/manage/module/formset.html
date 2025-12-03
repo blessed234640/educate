@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Modules - "{{ course.title }}" | Educa{% endblock %}
+
+{% block content %}
+<div class="courses-container">
+  <div class="courses-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <i class="fas fa-layer-group"></i>
+        Edit Modules
+      </h1>
+      <p class="page-subtitle">Manage course modules and their order</p>
+    </div>
+    <div class="header-actions">
+      <a href="{% url 'manage_course_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to Courses</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="auth-card module">
+    <div class="module-header">
+      <div class="course-header">
+        <div class="course-icon">
+          <i class="fas fa-graduation-cap"></i>
+        </div>
+        <div class="course-info">
+          <h2>{{ course.title }}</h2>
+          <div class="course-meta">
+            <span class="meta-item">
+              <i class="fas fa-book"></i>
+              {{ course.subject }}
+            </span>
+            <span class="meta-item">
+              <i class="fas fa-clock"></i>
+              {{ course.created|date:"M d, Y" }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <form method="post" class="formset-form">
+      {{ formset.management_form }}
+      {% csrf_token %}
+      
+      <div class="formset-container" id="formset-container">
+        {% for form in formset %}
+        <div class="formset-item" data-index="{{ forloop.counter0 }}">
+          <div class="formset-item-header">
+            <div class="item-number">
+              <i class="fas fa-grip-vertical handle"></i>
+              <span>Module {{ forloop.counter }}</span>
+            </div>
+            <div class="item-actions">
+              {% if form.instance.pk %}
+              <button type="button" class="btn-icon btn-delete-module" title="Delete module" data-form-id="{{ form.prefix }}">
+                <i class="fas fa-trash"></i>
+              </button>
+              {% endif %}
+            </div>
+          </div>
+          
+          <div class="formset-item-body">
+            {% for field in form %}
+            {% if field.is_hidden %}
+              {{ field }}
+            {% else %}
+            <div class="form-field {% if field.name == 'DELETE' %}delete-field{% endif %}">
+              <label for="{{ field.id_for_label }}" class="form-label">
+                <i class="fas 
+                  {% if field.name == 'title' %}fa-heading
+                  {% elif field.name == 'description' %}fa-align-left
+                  {% elif field.name == 'order' %}fa-sort-numeric-down
+                  {% else %}fa-edit{% endif %}">
+                </i>
+                {{ field.label|default:field.name|title }}
+              </label>
+              
+              {% if field.name == 'DELETE' %}
+                <div class="delete-checkbox">
+                  {{ field }}
+                  <label for="{{ field.id_for_label }}" class="checkbox-label">
+                    <span class="checkbox-custom"></span>
+                    <span class="checkbox-text">Delete this module</span>
+                  </label>
+                </div>
+              {% else %}
+                {{ field }}
+              {% endif %}
+              
+              {% if field.help_text %}
+              <div class="form-help">{{ field.help_text }}</div>
+              {% endif %}
+              
+              {% if field.errors %}
+              <div class="form-errors">
+                {% for error in field.errors %}
+                <span class="error-message">
+                  <i class="fas fa-exclamation-circle"></i> {{ error }}
+                </span>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="formset-actions">
+        <button type="button" class="btn btn-secondary btn-add-module" id="add-module">
+          <i class="fas fa-plus-circle"></i>
+          <span>Add Module</span>
+        </button>
+        
+        <div class="primary-actions">
+          <button type="submit" class="btn btn-primary btn-save">
+            <i class="fas fa-save"></i>
+            <span>Save Modules</span>
+          </button>
+          
+          <a href="{% url 'course_edit' course.id %}" class="btn btn-secondary">
+            <i class="fas fa-times"></i>
+            <span>Cancel</span>
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block domready %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Add form-control class to all inputs, textareas, and selects
+  const formElements = document.querySelectorAll('.formset-item input:not([type="checkbox"]):not([type="hidden"]), .formset-item textarea, .formset-item select');
+  formElements.forEach(el => {
+    el.classList.add('form-control');
+  });
+
+  // Handle delete button
+  document.querySelectorAll('.btn-delete-module').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const formId = this.getAttribute('data-form-id');
+      const deleteCheckbox = document.getElementById(`id_${formId}-DELETE`);
+      const formItem = this.closest('.formset-item');
+      
+      if (deleteCheckbox) {
+        deleteCheckbox.checked = !deleteCheckbox.checked;
+        if (deleteCheckbox.checked) {
+          formItem.classList.add('deleted');
+          this.innerHTML = '<i class="fas fa-undo"></i>';
+          this.title = 'Restore module';
+        } else {
+          formItem.classList.remove('deleted');
+          this.innerHTML = '<i class="fas fa-trash"></i>';
+          this.title = 'Delete module';
+        }
+      }
+    });
+  });
+
+  // Add new module
+  const addButton = document.getElementById('add-module');
+  if (addButton) {
+    addButton.addEventListener('click', function() {
+      const formsetContainer = document.getElementById('formset-container');
+      const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+      const formCount = parseInt(totalForms.value);
+      
+      // We can't add new forms dynamically without JavaScript formset handling
+      // This would require more complex JavaScript or a page reload
+      window.location.href = '?add_module=true';
+    });
+  }
+
+  // Add focus effects
+  const inputs = document.querySelectorAll('.formset-item input, .formset-item textarea, .formset-item select');
+  inputs.forEach(input => {
+    if (input.type !== 'checkbox' && input.type !== 'hidden') {
+      input.addEventListener('focus', function() {
+        this.parentElement.classList.add('focused');
+      });
+      
+      input.addEventListener('blur', function() {
+        this.parentElement.classList.remove('focused');
+      });
+    }
+  });
+
+  // Simple drag and drop indicators
+  const formsetItems = document.querySelectorAll('.formset-item');
+  formsetItems.forEach(item => {
+    const handle = item.querySelector('.handle');
+    if (handle) {
+      handle.addEventListener('mousedown', function() {
+        item.classList.add('dragging');
+      });
+      
+      handle.addEventListener('mouseup', function() {
+        item.classList.remove('dragging');
+      });
+    }
+  });
+});
+</script>
+{% endblock %}

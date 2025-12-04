@@ -59,6 +59,17 @@
               <i class="fas fa-cogs"></i>
               <span>Modules</span>
             </a>
+            {% if course.modules.count > 0 %}
+            <a href="{% url "module_content_list" course.modules.first.id %}" class="btn-action btn-contents" title="Manage Contents">
+              <i class="fas fa-folder-open"></i>
+              <span>Contents</span>
+            </a>
+            {% else %}
+            <span class="btn-action btn-disabled" title="Add modules first">
+              <i class="fas fa-folder-open"></i>
+              <span>Contents</span>
+            </span>
+            {% endif %}
           </div>
         </div>
       </div>

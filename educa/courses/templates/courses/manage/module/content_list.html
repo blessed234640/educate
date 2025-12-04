@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% load course %}
+
+{% block title %}
+  Module {{ module.order|add:1 }}: {{ module.title }} | Educa
+{% endblock %}
+
+{% block content %}
+{% with course=module.course %}
+<div class="courses-container">
+  <div class="courses-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <i class="fas fa-book"></i>
+        {{ course.title }}
+      </h1>
+      <p class="page-subtitle">Manage course content and module structure</p>
+    </div>
+    <div class="header-actions">
+      <a href="{% url 'manage_course_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to Courses</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="module-management">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h3>
+          <i class="fas fa-layer-group"></i>
+          Course Modules
+        </h3>
+        <p class="sidebar-subtitle">Select a module to manage its content</p>
+      </div>
+      
+      <ul class="module-list" id="modules">
+        {% for m in course.modules.all %}
+        <li class="module-item {% if m == module %}active{% endif %}">
+          <div class="module-item-content">
+            <div class="module-info">
+              <a href="{% url 'module_content_list' m.id %}" class="module-link">
+                <div class="module-order">
+                  <span class="order-badge">{{ m.order|add:1 }}</span>
+                </div>
+                <div class="module-details">
+                  <h4 class="module-title">{{ m.title|default:"Untitled Module" }}</h4>
+                  <div class="module-meta">
+                    <span class="meta-item">
+                      <i class="fas fa-file-alt"></i>
+                      {{ m.contents.count }} content{{ m.contents.count|pluralize }}
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </li>
+        {% empty %}
+        <li class="empty-modules">
+          <div class="empty-state-small">
+            <i class="fas fa-inbox"></i>
+            <p>No modules yet</p>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      
+      <div class="sidebar-actions">
+        <a href="{% url 'course_module_update' course.id %}" class="btn btn-secondary btn-sm">
+          <i class="fas fa-edit"></i>
+          <span>Edit Modules</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="content-area">
+      <div class="module-header-card">
+        <div class="module-header-content">
+          <div class="module-badge">
+            <span class="badge-number">{{ module.order|add:1 }}</span>
+          </div>
+          <div class="module-header-info">
+            <h2>{{ module.title|default:"Untitled Module" }}</h2>
+            <p class="module-description">{{ module.description|default:"No description provided" }}</p>
+          </div>
+        </div>
+        <div class="module-header-stats">
+          <div class="stat-item">
+            <i class="fas fa-file-alt"></i>
+            <span>{{ module.contents.count }} content{{ module.contents.count|pluralize }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="contents-card">
+        <div class="contents-header">
+          <h3>
+            <i class="fas fa-file-alt"></i>
+            Module Contents
+          </h3>
+          <p class="contents-subtitle">Manage your module contents</p>
+        </div>
+        
+        <div class="contents-list" id="module-contents">
+          {% for content in module.contents.all %}
+          <div class="content-item">
+            <div class="content-item-header">
+              <div class="content-type-icon">
+                {% with item=content.item %}
+                  {% if item|model_name == "text" %}
+                    <i class="fas fa-font"></i>
+                  {% elif item|model_name == "image" %}
+                    <i class="fas fa-image"></i>
+                  {% elif item|model_name == "video" %}
+                    <i class="fas fa-video"></i>
+                  {% elif item|model_name == "file" %}
+                    <i class="fas fa-file"></i>
+                  {% else %}
+                    <i class="fas fa-file-alt"></i>
+                  {% endif %}
+                {% endwith %}
+              </div>
+              <div class="content-info">
+                <h4 class="content-title">
+                  {% with item=content.item %}
+                    {{ item.title|default:item|model_name|title }}
+                  {% endwith %}
+                </h4>
+                <p class="content-type">
+                  {% with item=content.item %}
+                    {{ item|model_name|title }} content
+                  {% endwith %}
+                </p>
+              </div>
+            </div>
+            
+            <div class="content-actions">
+              {% with item=content.item %}
+              <a href="{% url 'module_content_update' module.id item|model_name item.id %}" class="btn-action btn-edit" title="Edit">
+                <i class="fas fa-edit"></i>
+                <span>Edit</span>
+              </a>
+              <form action="{% url 'module_content_delete' content.id %}" method="post" class="delete-form-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn-action btn-delete" title="Delete" onclick="return confirm('Are you sure you want to delete this content?')">
+                  <i class="fas fa-trash-alt"></i>
+                  <span>Delete</span>
+                </button>
+              </form>
+              {% endwith %}
+            </div>
+          </div>
+          {% empty %}
+          <div class="empty-contents">
+            <div class="empty-state-medium">
+              <i class="fas fa-file-alt"></i>
+              <h4>No contents yet</h4>
+              <p>Add content to this module to get started</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="add-content-section">
+          <h3>
+            <i class="fas fa-plus-circle"></i>
+            Add New Content
+          </h3>
+          <p class="add-content-subtitle">Select content type to add</p>
+          
+          <div class="content-type-grid">
+            <a href="{% url 'module_content_create' module.id 'text' %}" class="content-type-card">
+              <div class="content-type-icon-large">
+                <i class="fas fa-font"></i>
+              </div>
+              <h4>Text</h4>
+              <p>Add formatted text content</p>
+            </a>
+            
+            <a href="{% url 'module_content_create' module.id 'image' %}" class="content-type-card">
+              <div class="content-type-icon-large">
+                <i class="fas fa-image"></i>
+              </div>
+              <h4>Image</h4>
+              <p>Upload images with descriptions</p>
+            </a>
+            
+            <a href="{% url 'module_content_create' module.id 'video' %}" class="content-type-card">
+              <div class="content-type-icon-large">
+                <i class="fas fa-video"></i>
+              </div>
+              <h4>Video</h4>
+              <p>Add video content or links</p>
+            </a>
+            
+            <a href="{% url 'module_content_create' module.id 'file' %}" class="content-type-card">
+              <div class="content-type-icon-large">
+                <i class="fas fa-file"></i>
+              </div>
+              <h4>File</h4>
+              <p>Upload documents and files</p>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endwith %}
+{% endblock %}
+
+{% block domready %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Простые эффекты наведения для модулей
+  const moduleItems = document.querySelectorAll('.module-item');
+  moduleItems.forEach(item => {
+    item.addEventListener('mouseenter', function() {
+      if (!this.classList.contains('active')) {
+        this.style.backgroundColor = 'var(--bg-tertiary)';
+      }
+    });
+    
+    item.addEventListener('mouseleave', function() {
+      if (!this.classList.contains('active')) {
+        this.style.backgroundColor = '';
+      }
+    });
+  });
+  
+  // Подтверждение удаления
+  const deleteButtons = document.querySelectorAll('.btn-delete');
+  deleteButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      if (!confirm('Are you sure you want to delete this content?')) {
+        e.preventDefault();
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

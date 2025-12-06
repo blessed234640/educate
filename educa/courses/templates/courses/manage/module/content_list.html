@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load course %}
+{% load static %}
 
 {% block title %}
   Module {{ module.order|add:1 }}: {{ module.title }} | Educa
@@ -36,13 +37,12 @@
       
       <ul class="module-list" id="modules">
         {% for m in course.modules.all %}
-        <li class="module-item {% if m == module %}active{% endif %}">
+        <li class="module-item {% if m == module %}active{% endif %}" data-id="{{ m.id }}">
           <div class="module-item-content">
             <div class="module-info">
               <a href="{% url 'module_content_list' m.id %}" class="module-link">
                 <div class="module-order">
-                  <span class="order-badge">{{ m.order|add:1 }}</span>
-                </div>
+                  <span class="order-badge order">{{ m.order|add:1 }}</span>                </div>
                 <div class="module-details">
                   <h4 class="module-title">{{ m.title|default:"Untitled Module" }}</h4>
                   <div class="module-meta">
@@ -104,8 +104,11 @@
         
         <div class="contents-list" id="module-contents">
           {% for content in module.contents.all %}
-          <div class="content-item">
+          <div class="content-item" data-id="{{ content.id }}">
             <div class="content-item-header">
+              <div class="content-drag-handle">
+                <i class="fas fa-grip-vertical"></i>
+              </div>
               <div class="content-type-icon">
                 {% with item=content.item %}
                   {% if item|model_name == "text" %}
@@ -143,7 +146,7 @@
               </a>
               <form action="{% url 'module_content_delete' content.id %}" method="post" class="delete-form-inline">
                 {% csrf_token %}
-                <button type="submit" class="btn-action btn-delete" title="Delete" onclick="return confirm('Are you sure you want to delete this content?')">
+                <button type="submit" class="btn-action btn-delete" title="Delete">
                   <i class="fas fa-trash-alt"></i>
                   <span>Delete</span>
                 </button>
@@ -210,34 +213,58 @@
 {% endwith %}
 {% endblock %}
 
+{% block include_js %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5sortable/0.13.3/html5sortable.min.js"></script>
+{% endblock %}
+
 {% block domready %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Простые эффекты наведения для модулей
-  const moduleItems = document.querySelectorAll('.module-item');
-  moduleItems.forEach(item => {
-    item.addEventListener('mouseenter', function() {
-      if (!this.classList.contains('active')) {
-        this.style.backgroundColor = 'var(--bg-tertiary)';
-      }
+  var options = {
+      method: 'POST',
+      mode: 'same-origin'
+  }
+
+  const moduleOrderUrl = '{% url "module_order" %}';
+
+  sortable('#modules', {
+    forcePlaceholderSize: true,
+    placeholderClass: 'placeholder'
+  })[0].addEventListener('sortupdate', function(e) {
+
+    modulesOrder = {};
+    var modules = document.querySelectorAll('#modules li');
+    modules.forEach(function (module, index) {
+      // update module index
+      modulesOrder[module.dataset.id] = index;
+      // update index in HTML element
+      module.querySelector('.order').innerHTML = index + 1;
     });
-    
-    item.addEventListener('mouseleave', function() {
-      if (!this.classList.contains('active')) {
-        this.style.backgroundColor = '';
-      }
-    });
+
+    // add new order to the HTTP request options
+    options['body'] = JSON.stringify(modulesOrder);
+
+    // send HTTP request
+    fetch(moduleOrderUrl, options)
   });
-  
-  // Подтверждение удаления
-  const deleteButtons = document.querySelectorAll('.btn-delete');
-  deleteButtons.forEach(button => {
-    button.addEventListener('click', function(e) {
-      if (!confirm('Are you sure you want to delete this content?')) {
-        e.preventDefault();
-      }
+
+  const contentOrderUrl = '{% url "content_order" %}';
+
+  sortable('#module-contents', {
+    forcePlaceholderSize: true,
+    placeholderClass: 'placeholder'
+  })[0].addEventListener('sortupdate', function(e) {
+
+    contentOrder = {};
+    var contents = document.querySelectorAll('#module-contents div');
+    contents.forEach(function (content, index) {
+      // update content index
+      contentOrder[content.dataset.id] = index;
     });
+
+    // add new order to the HTTP request options
+    options['body'] = JSON.stringify(contentOrder);
+
+    // send HTTP request
+    fetch(contentOrderUrl, options)
   });
-});
-</script>
+
 {% endblock %}

@@ -1,0 +1,595 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  {% if subject %}
+    {{ subject.title }} Courses | Educa
+  {% else %}
+    All Courses | Educa
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<style>
+/* ============================================
+   СТИЛИ ДЛЯ БОКОВОЙ ПАНЕЛИ И КАРТОЧЕК
+   ============================================ */
+
+/* Контейнер каталога */
+.course-catalog {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+    width: 100%;
+}
+
+@media (max-width: 1024px) {
+    .course-catalog {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Сайдбар */
+.sidebar {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.sidebar-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.sidebar-header h3 {
+    font-family: "Poppins", sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sidebar-header h3 i {
+    color: #4f46e5;
+}
+
+.sidebar-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Список предметов */
+.subject-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.subject-item {
+    margin-bottom: 0.5rem;
+    border-radius: 0.75rem;
+    transition: all 0.25s ease;
+    border: 1px solid #e5e7eb;
+    background: white;
+    overflow: hidden;
+}
+
+.subject-item:hover {
+    border-color: #818cf8;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.subject-item.active {
+    border-color: #4f46e5;
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(129, 140, 248, 0.05));
+}
+
+.subject-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+    min-height: 70px;
+}
+
+/* Иконка предмета */
+.subject-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #f3f4f6, #f9fafb);
+    border-radius: 0.5rem;
+    flex-shrink: 0;
+    border: 1px solid #e5e7eb;
+}
+
+.subject-item.active .subject-icon {
+    background: linear-gradient(135deg, #4f46e5, #818cf8);
+    border-color: transparent;
+}
+
+.subject-icon i {
+    color: #6b7280;
+    font-size: 1.125rem;
+}
+
+.subject-item.active .subject-icon i {
+    color: white;
+}
+
+/* Информация о предмете */
+.subject-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.subject-info h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.25rem 0;
+    line-height: 1.4;
+}
+
+.subject-meta {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Количество курсов */
+.subject-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 0.25rem;
+    background: #f3f4f6;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #6b7280;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.subject-item.active .subject-count {
+    background: #818cf8;
+    color: white;
+}
+
+/* Список курсов */
+.courses-list {
+    width: 100%;
+}
+
+.results-count {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: #f3f4f6;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+}
+
+.results-count i {
+    color: #4f46e5;
+    font-size: 1rem;
+}
+
+.results-count span {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+/* Сетка курсов */
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+/* Карточка курса */
+.course-card {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.course-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: #818cf8;
+}
+
+/* Заголовок карточки */
+.course-card-header {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+/* Бейдж курса */
+.course-badge {
+    background: linear-gradient(135deg, #4f46e5, #818cf8);
+    width: 48px;
+    height: 48px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.course-badge i {
+    color: white;
+    font-size: 1.25rem;
+}
+
+/* Заголовок и информация */
+.course-title-section {
+    flex: 1;
+}
+
+.course-title {
+    font-family: "Poppins", sans-serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+}
+
+.course-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.course-title a:hover {
+    color: #4f46e5;
+}
+
+/* Мета-информация */
+.course-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.course-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+    padding: 0.25rem 0.5rem;
+    background: #f3f4f6;
+    border-radius: 0.375rem;
+}
+
+.course-meta-item i {
+    font-size: 0.625rem;
+    color: #818cf8;
+}
+
+/* Тело карточки */
+.course-card-body {
+    padding: 1.5rem;
+    flex: 1;
+}
+
+.course-description {
+    color: #6b7280;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Тег предмета */
+.course-subject-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #4f46e5;
+    padding: 0.25rem 0.5rem;
+    background: rgba(79, 70, 229, 0.1);
+    border-radius: 0.375rem;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.course-subject-tag:hover {
+    background: rgba(79, 70, 229, 0.2);
+}
+
+.course-subject-tag i {
+    font-size: 0.75rem;
+}
+
+/* Футер карточки */
+.course-card-footer {
+    padding: 0 1.5rem 1.5rem;
+}
+
+.btn-view-course {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, #4f46e5, #818cf8);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+.btn-view-course:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #4338ca, #4f46e5);
+}
+
+/* Пустое состояние */
+.catalog-empty-state {
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    margin: 2rem 0;
+}
+
+.catalog-empty-icon {
+    font-size: 3rem;
+    color: #818cf8;
+    margin-bottom: 1.5rem;
+    opacity: 0.7;
+}
+
+.catalog-empty-title {
+    font-family: "Poppins", sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.75rem;
+}
+
+.catalog-empty-description {
+    color: #6b7280;
+    margin-bottom: 2rem;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .course-catalog {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .sidebar {
+        margin-bottom: 1.5rem;
+    }
+    
+    .courses-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .course-card-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .course-meta {
+        justify-content: center;
+    }
+}
+</style>
+<div class="courses-container">
+  <div class="courses-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <i class="fas fa-graduation-cap"></i>
+        {% if subject %}
+          {{ subject.title }} Courses
+        {% else %}
+          All Courses
+        {% endif %}
+      </h1>
+      <p class="page-subtitle">
+        {% if subject %}
+          Browse all courses in {{ subject.title }}
+        {% else %}
+          Explore our wide range of educational courses
+        {% endif %}
+      </p>
+    </div>
+  </div>
+  <div class="course-catalog">
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-bookmark"></i> Subjects</h3>
+            <p class="sidebar-subtitle">Filter by subject area</p>
+        </div>
+        
+        <ul class="subject-list">
+            <li class="subject-item {% if not subject %}active{% endif %}">
+                <a href="{% url 'course_list' %}" class="subject-link">
+                    <div class="subject-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <div class="subject-info">
+                        <h4>All Subjects</h4>
+                        <p class="subject-meta">Browse all courses</p>
+                    </div>
+                    <span class="subject-count">{{ courses|length }}</span>
+                </a>
+            </li>
+            
+            {% for s in subjects %}
+            <li class="subject-item {% if subject == s %}active{% endif %}">
+                <a href="{% url 'course_list_subject' s.slug %}" class="subject-link">
+                    <div class="subject-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="subject-info">
+                        <h4>{{ s.title }}</h4>
+                        <p class="subject-meta">
+                            <i class="fas fa-graduation-cap"></i>
+                            {{ s.total_courses }} course{{ s.total_courses|pluralize }}
+                        </p>
+                    </div>
+                    <span class="subject-count">{{ s.total_courses }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <!-- Правая часть со списком курсов -->
+    <div class="courses-list">
+        <div class="results-count">
+            <i class="fas fa-search"></i>
+            <span>Showing {{ courses|length }} course{{ courses|length|pluralize }}</span>
+        </div>
+        
+        {% if courses %}
+        <div class="courses-grid">
+            {% for course in courses %}
+            <div class="course-card">
+                <div class="course-card-header">
+                    <div class="course-badge">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="course-title-section">
+                        <h3 class="course-title">
+                            <a href="{% url 'course_detail' course.slug %}">
+                                {{ course.title }}
+                            </a>
+                        </h3>
+                        <div class="course-meta">
+                            <span class="course-meta-item">
+                                <i class="fas fa-layer-group"></i>
+                                {{ course.total_modules }} module{{ course.total_modules|pluralize }}
+                            </span>
+                            <span class="course-meta-item">
+                                <i class="fas fa-user-graduate"></i>
+                                {{ course.owner.get_full_name|default:course.owner.username }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="course-card-body">
+                    <p class="course-description">
+                        {{ course.overview|truncatewords:30 }}
+                    </p>
+                    <a href="{% url 'course_list_subject' course.subject.slug %}" class="course-subject-tag">
+                        <i class="fas fa-tag"></i>
+                        {{ course.subject.title }}
+                    </a>
+                </div>
+                
+                <div class="course-card-footer">
+                    <a href="{% url 'course_detail' course.slug %}" class="btn-view-course">
+                        <i class="fas fa-eye"></i>
+                        View Course
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="catalog-empty-state">
+            <div class="catalog-empty-icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <h2 class="catalog-empty-title">No Courses Found</h2>
+            <p class="catalog-empty-description">
+                {% if subject %}
+                    No courses available in {{ subject.title }} yet.
+                {% else %}
+                    No courses available at the moment.
+                {% endif %}
+            </p>
+            <a href="{% url 'course_list' %}" class="btn-view-course">
+                <i class="fas fa-arrow-left"></i>
+                View All Courses
+            </a>
+        </div>
+        {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block domready %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Эффекты наведения для предметов
+  const subjectItems = document.querySelectorAll('.subject-item');
+  subjectItems.forEach(item => {
+    item.addEventListener('mouseenter', function() {
+      if (!this.classList.contains('active')) {
+        this.style.backgroundColor = 'var(--bg-tertiary)';
+      }
+    });
+    
+    item.addEventListener('mouseleave', function() {
+      if (!this.classList.contains('active')) {
+        this.style.backgroundColor = '';
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

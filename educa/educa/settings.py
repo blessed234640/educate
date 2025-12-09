@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     'students.apps.StudentsConfig',
     'braces',
+    'embed_video',
 ]
 
 MIDDLEWARE = [

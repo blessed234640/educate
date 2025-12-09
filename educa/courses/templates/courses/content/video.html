@@ -1,0 +1,85 @@
+{% comment %} courses/templates/courses/content/video.html {% endcomment %}
+
+{# Для YouTube #}
+{% if "youtube.com" in item.url or "youtu.be" in item.url %}
+    {% comment %} Извлекаем ID видео из ссылки {% endcomment %}
+    {% if "youtube.com/watch?v=" in item.url %}
+        {% with video_id=item.url|slice:"32:43" %}
+        <div class="video-container">
+            <iframe 
+                src="https://www.youtube.com/embed/{{ video_id }}?rel=0"
+                width="100%"
+                height="450"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+            </iframe>
+        </div>
+        {% endwith %}
+    {% elif "youtu.be/" in item.url %}
+        {% with video_id=item.url|slice:"17:28" %}
+        <div class="video-container">
+            <iframe 
+                src="https://www.youtube.com/embed/{{ video_id }}?rel=0"
+                width="100%"
+                height="450"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+            </iframe>
+        </div>
+        {% endwith %}
+    {% endif %}
+
+{# Для Rutube #}
+{% elif "rutube.ru" in item.url %}
+    {% comment %} Извлекаем ID из Rutube ссылки {% endcomment %}
+    {% with video_id=item.url|cut:"https://rutube.ru/video/"|cut:"/" %}
+    <div class="video-container">
+        <iframe 
+            src="https://rutube.ru/play/embed/{{ video_id }}"
+            width="100%"
+            height="450"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+        </iframe>
+    </div>
+    {% endwith %}
+
+{# Для других случаев #}
+{% else %}
+    <div class="alert alert-warning">
+        Неподдерживаемый формат видео. 
+        <a href="{{ item.url }}" target="_blank">Открыть ссылку</a>
+    </div>
+{% endif %}
+
+<style>
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 соотношение */
+    height: 0;
+    overflow: hidden;
+    background: #000;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.alert-warning {
+    padding: 15px;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+</style>

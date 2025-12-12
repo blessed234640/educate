@@ -24,8 +24,9 @@ INSTALLED_APPS = [
     "braces",
     "embed_video",
     "debug_toolbar",
-    'redisboard',
-    'rest_framework',
+    "redisboard",
+    "rest_framework",
+    "chat.apps.ChatConfig",
 ]
 
 MIDDLEWARE = [
@@ -108,12 +109,12 @@ CACHES = {
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
-CACHE_MIDDLEWARE_ALIAS = 'default'
-CACHE_MIDDLEWARE_SECONDS = 60 * 15 # 15 minutes
-CACHE_MIDDLEWARE_KEY_PREFIX = 'educa'
+CACHE_MIDDLEWARE_ALIAS = "default"
+CACHE_MIDDLEWARE_SECONDS = 60 * 15  # 15 minutes
+CACHE_MIDDLEWARE_KEY_PREFIX = "educa"
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ]
 }

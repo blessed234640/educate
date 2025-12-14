@@ -1,0 +1,656 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Wishlist - Educa{% endblock %}
+
+{% block extra_css %}
+<style>
+    .wishlist-header {
+        background: linear-gradient(135deg, #f72585, #e11575);
+        color: white;
+        padding: 60px 0;
+        border-radius: var(--border-radius);
+        margin-bottom: 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .wishlist-header::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 150px;
+        height: 150px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+    
+    .wishlist-header::after {
+        content: '';
+        position: absolute;
+        bottom: -30px;
+        left: -30px;
+        width: 100px;
+        height: 100px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+    }
+    
+    .wishlist-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .wishlist-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .wishlist-card {
+        position: relative;
+        transition: var(--transition);
+        border: none;
+        box-shadow: var(--shadow-md);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    
+    .wishlist-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .wishlist-remove-form {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        z-index: 10;
+    }
+    
+    .wishlist-remove-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: white;
+        border: none;
+        color: #f72585;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+    }
+    
+    .wishlist-remove-btn:hover {
+        background: #f72585;
+        color: white;
+        transform: scale(1.1);
+    }
+    
+    .course-card-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 20px;
+        position: relative;
+        flex-shrink: 0;
+    }
+    
+    .course-card-header h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+    
+    .course-card-body {
+        padding: 20px;
+        flex-grow: 1;
+    }
+    
+    .course-meta {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+        font-size: 14px;
+        color: var(--gray-600);
+        flex-wrap: wrap;
+    }
+    
+    .course-meta span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .course-meta i {
+        color: var(--primary-color);
+    }
+    
+    .course-card-footer {
+        padding: 20px;
+        background: var(--gray-100);
+        border-top: 1px solid var(--gray-200);
+        flex-shrink: 0;
+    }
+    
+    /* МАЛЕНЬКИЙ БЕЙДЖ В ШАПКЕ */
+    .course-header-enrolled {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        z-index: 5;
+    }
+    
+    .header-enrolled-badge {
+        background: rgba(255, 255, 255, 0.95);
+        color: #28a745;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(40, 167, 69, 0.2);
+    }
+    
+    /* КОНТЕЙНЕР ДЛЯ КНОПОК - ПРОСТО ДВЕ КНОПКИ РЯДОМ */
+    .buttons-container {
+        display: flex;
+        gap: 12px;
+        width: 100%;
+    }
+    
+    /* Стили для кнопок */
+    .btn-details {
+        background: var(--primary-color);
+        border: none;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-align: center;
+        flex: 1;
+        font-size: 14px;
+        box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+    }
+    
+    .btn-details:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+        color: white;
+    }
+    
+    .btn-enroll {
+        background: linear-gradient(135deg, var(--success-color), #2ea44f);
+        border: none;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-align: center;
+        flex: 1;
+        font-size: 14px;
+        box-shadow: 0 2px 4px rgba(46, 164, 79, 0.2);
+    }
+    
+    .btn-enroll:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(46, 164, 79, 0.3);
+        color: white;
+    }
+    
+    .btn-continue {
+        background: linear-gradient(135deg, #6c757d, #495057);
+        border: none;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-align: center;
+        flex: 1;
+        font-size: 14px;
+        box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2);
+    }
+    
+    .btn-continue:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+        color: white;
+    }
+    
+    /* Статистика курса */
+    .course-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 20px;
+        padding: 15px;
+        background: var(--gray-50);
+        border-radius: var(--border-radius-sm);
+        text-align: center;
+    }
+    
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .stat-number {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--primary-color);
+        line-height: 1.2;
+    }
+    
+    .stat-label {
+        font-size: 11px;
+        color: var(--gray-600);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 2px;
+    }
+    
+    /* Анимация удаления */
+    .wishlist-card.removing {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.9);
+        transition: all 0.3s ease;
+    }
+    
+    .empty-wishlist {
+        text-align: center;
+        padding: 80px 20px;
+        color: var(--gray-500);
+    }
+    
+    .empty-wishlist-icon {
+        font-size: 72px;
+        color: #f72585;
+        opacity: 0.3;
+        margin-bottom: 20px;
+    }
+    
+    /* Описание курса - компактнее */
+    .course-description {
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--gray-600);
+        margin-bottom: 15px;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    /* Инструктор - компактнее */
+    .instructor-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 10px;
+        background: var(--gray-50);
+        border-radius: 8px;
+    }
+    
+    .instructor-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 14px;
+        font-weight: 600;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+    
+    .instructor-text {
+        flex-grow: 1;
+    }
+    
+    .instructor-name {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--gray-800);
+        margin-bottom: 2px;
+    }
+    
+    .instructor-role {
+        font-size: 12px;
+        color: var(--gray-500);
+    }
+    
+    /* АДАПТИВНОСТЬ */
+    @media (max-width: 992px) {
+        .wishlist-grid {
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .wishlist-grid {
+            grid-template-columns: 1fr;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .wishlist-card {
+            max-width: 100%;
+        }
+        
+        .course-meta {
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .course-stats {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .wishlist-header {
+            padding: 40px 0;
+        }
+        
+        .wishlist-icon {
+            font-size: 48px;
+        }
+        
+        .wishlist-header h1 {
+            font-size: 1.75rem;
+        }
+        
+        .course-card-header,
+        .course-card-body,
+        .course-card-footer {
+            padding: 15px;
+        }
+        
+        .buttons-container {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .btn-details,
+        .btn-enroll,
+        .btn-continue {
+            padding: 12px 16px;
+            font-size: 15px;
+            width: 100%;
+        }
+        
+        .course-meta {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .course-stats {
+            grid-template-columns: repeat(3, 1fr);
+            padding: 12px;
+            gap: 8px;
+        }
+        
+        .stat-number {
+            font-size: 16px;
+        }
+        
+        .stat-label {
+            font-size: 10px;
+        }
+        
+        .instructor-info {
+            padding: 8px;
+        }
+    }
+    
+    @media (max-width: 375px) {
+        .course-stats {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        
+        .stat-item {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .stat-number {
+            font-size: 16px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            text-transform: none;
+            margin-top: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Заголовок Wishlist -->
+    <div class="wishlist-header">
+        <div class="wishlist-icon">
+            <i class="fas fa-heart"></i>
+        </div>
+        <h1 class="h2 mb-3">My Wishlist</h1>
+        <p class="lead mb-0">{{ wishlist_items.count }} course{{ wishlist_items.count|pluralize }} saved</p>
+    </div>
+    
+    {% if wishlist_items %}
+    <div class="wishlist-grid">
+        {% for item in wishlist_items %}
+        {% with course=item.course %}
+        <div class="card wishlist-card" id="wishlist-card-{{ course.id }}">
+            <!-- Кнопка удаления из вишлиста -->
+            <form method="post" action="{% url 'wishlist_toggle' course.id %}" 
+                  class="wishlist-remove-form"
+                  onsubmit="removeFromWishlist(event, {{ course.id }})">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="wishlist-remove-btn" title="Remove from wishlist">
+                    <i class="fas fa-times"></i>
+                </button>
+            </form>
+            
+            <!-- МАЛЕНЬКИЙ БЕЙДЖ "ENROLLED" в шапке -->
+            {% if course.id in enrolled_course_ids %}
+            <div class="course-header-enrolled">
+                <span class="header-enrolled-badge">
+                    <i class="fas fa-check-circle"></i> Enrolled
+                </span>
+            </div>
+            {% endif %}
+            
+            <!-- Заголовок карточки -->
+            <div class="course-card-header">
+                <h3>{{ course.title }}</h3>
+                <div class="mt-2">
+                    <span class="badge bg-white text-primary">
+                        <i class="fas fa-tag me-1"></i>{{ course.subject.title }}
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Тело карточки -->
+            <div class="course-card-body">
+                <!-- Мета информация -->
+                <div class="course-meta">
+                    <span>
+                        <i class="fas fa-layer-group"></i>
+                        {{ course.modules.count }} modules
+                    </span>
+                    <span>
+                        <i class="fas fa-clock"></i>
+                        {{ course.modules.count|add:course.modules.count }}h
+                    </span>
+                    <span>
+                        <i class="fas fa-users"></i>
+                        {{ course.students.count }} students
+                    </span>
+                </div>
+                
+                <!-- Описание курса -->
+                <p class="course-description">
+                    {{ course.overview|striptags|truncatewords:20 }}
+                </p>
+                
+                <!-- Инструктор -->
+                <div class="instructor-info">
+                    <div class="instructor-avatar">
+                        {{ course.owner.first_name|first|default:"I" }}{{ course.owner.last_name|first|default:"N" }}
+                    </div>
+                    <div class="instructor-text">
+                        <div class="instructor-name">
+                            {{ course.owner.get_full_name|default:course.owner.username }}
+                        </div>
+                        <div class="instructor-role">Instructor</div>
+                    </div>
+                </div>
+                
+                <!-- Статистика курса -->
+                <div class="course-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ course.modules.count }}</span>
+                        <span class="stat-label">Modules</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">{{ course.students.count }}</span>
+                        <span class="stat-label">Students</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">
+                            {% if course.modules.count < 5 %}
+                                Beginner
+                            {% elif course.modules.count < 10 %}
+                                Intermediate
+                            {% else %}
+                                Advanced
+                            {% endif %}
+                        </span>
+                        <span class="stat-label">Level</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Футер карточки -->
+            <div class="course-card-footer">
+                <!-- Контейнер для кнопок - ТОЛЬКО ДВЕ КНОПКИ -->
+                <div class="buttons-container">
+                    <!-- Кнопка View Details -->
+                    <a href="{% url 'course_detail' course.slug %}" class="btn btn-details">
+                        <i class="fas fa-info-circle"></i> Details
+                    </a>
+                    
+                    {% if course.id in enrolled_course_ids %}
+                    <!-- Кнопка Continue Learning (для зачисленных) -->
+                    <a href="{% url 'student_course_detail' course.id %}" class="btn btn-continue">
+                        <i class="fas fa-play-circle"></i> Continue
+                    </a>
+                    {% else %}
+                    <!-- Кнопка Enroll Now (для незачисленных) -->
+                    <form action="{% url 'student_enroll_course' %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="course" value="{{ course.id }}">
+                        <button type="submit" class="btn btn-enroll">
+                            <i class="fas fa-play-circle"></i> Enroll
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+        {% endfor %}
+    </div>
+    
+    <!-- Кнопка поиска курсов -->
+    <div class="text-center mb-5">
+        <a href="{% url 'course_list' %}" class="btn btn-outline-primary btn-lg px-5 py-3">
+            <i class="fas fa-search me-2"></i>Browse More Courses
+        </a>
+    </div>
+    
+    {% else %}
+    <!-- Пустой вишлист -->
+    <div class="card border-0 shadow">
+        <div class="empty-wishlist">
+            <div class="empty-wishlist-icon">
+                <i class="fas fa-heart"></i>
+            </div>
+            <h3 class="h4 mb-3">Your wishlist is empty</h3>
+            <p class="text-muted mb-4">
+                Start adding courses you're interested in to save them for later!
+            </p>
+            <a href="{% url 'course_list' %}" class="btn btn-primary btn-lg px-5 py-3">
+                <i class="fas fa-search me-2"></i>Browse Courses
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block domready %}
+<script>
+function removeFromWishlist(event, courseId) {
+    event.preventDefault();
+    
+    const form = event.target.closest('form');
+    const card = document.getElementById(`wishlist-card-${courseId}`);
+    
+    if (card) {
+        // Анимация удаления
+        card.classList.add('removing');
+        
+        // Отправляем форму через setTimeout для анимации
+        setTimeout(() => {
+            form.submit();
+        }, 300);
+    } else {
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

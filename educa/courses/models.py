@@ -3,7 +3,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.template.loader import render_to_string
-
+from ckeditor.fields import RichTextField
 from .fields import OrderField
 
 
@@ -31,7 +31,7 @@ class Course(models.Model):
     )
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True)
-    overview = models.TextField()
+    overview = RichTextField()
     created = models.DateTimeField(auto_now_add=True)
     students = models.ManyToManyField(
         User,
@@ -121,3 +121,23 @@ class Image(ItemBase):
 
 class Video(ItemBase):
     url = models.URLField()
+
+class Wishlist(models.Model):
+    user = models.ForeignKey(
+        User,
+        related_name='wishlists',
+        on_delete=models.CASCADE
+    )
+    course = models.ForeignKey(
+        Course,
+        related_name='wishlisted_by',
+        on_delete=models.CASCADE
+    )
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'course']
+        ordering = ['-added_at']
+
+    def __str__(self):
+        return f'{self.user.username} - {self.course.title}'

@@ -1,0 +1,464 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Chat room for "{{ course.title }}" - Educa{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Основной контейнер */
+    .chat-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    
+    /* Шапка чата */
+    .chat-header {
+        background: linear-gradient(135deg, #0d6efd, #6610f2);
+        color: white;
+        padding: 40px;
+        border-radius: 15px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+    
+    .chat-header::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 150px;
+        height: 150px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+    
+    .chat-header::after {
+        content: '';
+        position: absolute;
+        bottom: -30px;
+        left: -30px;
+        width: 100px;
+        height: 100px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+    }
+    
+    .chat-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .chat-header .course-title {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Окно сообщений */
+    #chat {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        min-height: 500px;
+        max-height: 600px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        border: 1px solid #e0e0e0;
+        margin-bottom: 20px;
+    }
+    
+    /* Стили сообщений */
+    .message {
+        padding: 15px 20px;
+        border-radius: 15px;
+        max-width: 70%;
+        position: relative;
+        animation: fadeIn 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    @keyframes fadeIn {
+        from { 
+            opacity: 0; 
+            transform: translateY(10px); 
+        }
+        to { 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
+    }
+    
+    .message.me {
+        background: linear-gradient(135deg, #0d6efd, #6610f2);
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 5px;
+    }
+    
+    .message.other {
+        background: #f8f9fa;
+        color: #212529;
+        margin-right: auto;
+        border-bottom-left-radius: 5px;
+    }
+    
+    /* Заголовок сообщения (ник + время) */
+    .message-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    
+    .message strong {
+        font-size: 14px;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .message.me strong {
+        color: rgba(255, 255, 255, 0.95);
+    }
+    
+    .message.other strong {
+        color: #0d6efd;
+    }
+    
+    .message .date {
+        font-size: 11px;
+        opacity: 0.8;
+        font-weight: normal;
+        margin-left: 10px;
+    }
+    
+    .message.me .date {
+        color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .message.other .date {
+        color: #6c757d;
+    }
+    
+    /* Контент сообщения */
+    .message-content {
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+    
+    /* Пустой чат */
+    .empty-chat {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+    
+    .empty-chat-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+    
+    .empty-chat h3 {
+        color: #495057;
+        margin-bottom: 10px;
+    }
+    
+    /* Поле ввода сообщений */
+    #chat-input {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        padding: 25px;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        border: 1px solid #e0e0e0;
+    }
+    
+    #chat-message-input {
+        flex: 1;
+        padding: 15px 20px;
+        border: 2px solid #dee2e6;
+        border-radius: 50px;
+        font-size: 16px;
+        transition: all 0.2s ease;
+        background: #f8f9fa;
+        color: #212529;
+    }
+    
+    #chat-message-input:focus {
+        outline: none;
+        border-color: #0d6efd;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+    
+    #chat-message-input::placeholder {
+        color: #6c757d;
+    }
+    
+    #chat-message-submit {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 50px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+        white-space: nowrap;
+    }
+    
+    #chat-message-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+    
+    #chat-message-submit:active {
+        transform: translateY(0);
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .chat-header {
+            padding: 30px;
+        }
+        
+        .chat-header h1 {
+            font-size: 2rem;
+        }
+        
+        #chat {
+            padding: 20px;
+            min-height: 400px;
+            max-height: 450px;
+        }
+        
+        #chat-input {
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        #chat-message-input,
+        #chat-message-submit {
+            width: 100%;
+        }
+        
+        .message {
+            max-width: 85%;
+        }
+        
+        .message-header {
+            flex-wrap: wrap;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .chat-header {
+            padding: 25px 20px;
+        }
+        
+        .chat-header h1 {
+            font-size: 1.75rem;
+        }
+        
+        #chat {
+            padding: 15px;
+            min-height: 350px;
+            max-height: 400px;
+        }
+        
+        .message {
+            padding: 12px 15px;
+            max-width: 90%;
+        }
+        
+        .message .date {
+            font-size: 10px;
+            margin-left: 5px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Шапка чата -->
+    <div class="chat-header">
+        <div style="font-size: 64px; margin-bottom: 20px;">
+            <i class="fas fa-comments"></i>
+        </div>
+        <h1>Course Chat Room</h1>
+        <div class="course-title">{{ course.title }}</div>
+    </div>
+    
+    <!-- Окно сообщений -->
+    <div id="chat">
+        {% for message in latest_messages %}
+        <div class="message {% if message.user == request.user %}me{% else %}other{% endif %}">
+            <div class="message-header">
+                <strong>{{ message.user.username }}</strong>
+                <span class="date">{{ message.sent_on|date:"H:i" }}</span>
+            </div>
+            <div class="message-content">
+                {{ message.content|linebreaksbr }}
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-chat">
+            <div class="empty-chat-icon">
+                <i class="fas fa-comment-slash"></i>
+            </div>
+            <h3>No messages yet</h3>
+            <p>Be the first to start the conversation!</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Поле ввода сообщений -->
+    <div id="chat-input">
+        <input id="chat-message-input" type="text" placeholder="Type your message here...">
+        <button id="chat-message-submit" type="button">
+            <i class="fas fa-paper-plane"></i> Send
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block include_js %}
+{{ course.id|json_script:"course-id" }}
+{{ request.user.username|json_script:"request-user" }}
+{% endblock %}
+
+{% block domready %}
+console.log('DOM is ready!');
+
+const courseId = JSON.parse(document.getElementById('course-id').textContent);
+const requestUser = JSON.parse(document.getElementById('request-user').textContent);
+
+console.log('Course ID:', courseId);
+console.log('User:', requestUser);
+
+const url = 'ws://' + window.location.host + '/ws/chat/room/' + courseId + '/';
+console.log('WebSocket URL:', url);
+
+const chatSocket = new WebSocket(url);
+const chatElement = document.getElementById('chat');
+const inputElement = document.getElementById('chat-message-input');
+const submitButton = document.getElementById('chat-message-submit');
+
+chatSocket.onopen = function(e) {
+    console.log('WebSocket connected!');
+};
+
+chatSocket.onmessage = function(e) {
+    console.log('Message received:', e.data);
+    
+    try {
+        const data = JSON.parse(e.data);
+        
+        // Проверяем, что это chat_message
+        if (data.type === 'chat_message') {
+            // Форматируем дату
+            const date = new Date(data.datetime);
+            const timeString = date.toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false  // 24-часовой формат
+            });
+            
+            // Определяем класс сообщения
+            const isMe = data.user === requestUser;
+            const messageClass = isMe ? 'message me' : 'message other';
+            const username = isMe ? 'Me' : data.user;
+            
+            // Создаем HTML сообщения с новым форматом
+            const messageDiv = document.createElement('div');
+            messageDiv.className = messageClass;
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <strong>${username}</strong>
+                    <span class="date">${timeString}</span>
+                </div>
+                <div class="message-content">
+                    ${data.message}
+                </div>
+            `;
+            
+            // Добавляем сообщение в чат
+            chatElement.appendChild(messageDiv);
+            
+            // Удаляем сообщение "пустой чат", если оно есть
+            const emptyChat = chatElement.querySelector('.empty-chat');
+            if (emptyChat) {
+                emptyChat.remove();
+            }
+            
+            // Прокручиваем к последнему сообщению
+            chatElement.scrollTop = chatElement.scrollHeight;
+        }
+    } catch (error) {
+        console.error('Error processing message:', error);
+    }
+};
+
+chatSocket.onerror = function(e) {
+    console.error('WebSocket error:', e);
+};
+
+chatSocket.onclose = function(e) {
+    console.log('WebSocket closed:', e);
+};
+
+// Функция отправки сообщения
+function sendMessage() {
+    const message = inputElement.value.trim();
+    
+    if (message && chatSocket.readyState === WebSocket.OPEN) {
+        // Отправляем сообщение через WebSocket
+        chatSocket.send(JSON.stringify({message: message}));
+        console.log('Message sent:', message);
+        
+        // Очищаем поле ввода
+        inputElement.value = '';
+        inputElement.focus();
+    } else if (chatSocket.readyState !== WebSocket.OPEN) {
+        console.error('WebSocket not connected');
+        alert('Connection lost. Please refresh the page.');
+    }
+}
+
+// Обработчики событий
+submitButton.addEventListener('click', function(event) {
+    event.preventDefault();
+    sendMessage();
+});
+
+inputElement.addEventListener('keypress', function(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+});
+
+// Фокус на поле ввода
+inputElement.focus();
+
+// Автопрокрутка при загрузке
+chatElement.scrollTop = chatElement.scrollHeight;
+{% endblock %}

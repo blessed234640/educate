@@ -13,9 +13,14 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 from students.forms import CourseEnrollForm
-
+from .forms import CourseForm, ModuleFormSet
+from .models import Wishlist
 from .forms import ModuleFormSet
 from .models import Content, Course, Module, Subject
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 
 
 class OwnerMixin:
@@ -32,7 +37,7 @@ class OwnerEditMixin:
 
 class OwnerCourseMixin(OwnerMixin, LoginRequiredMixin, PermissionRequiredMixin):
     model = Course
-    fields = ["subject", "title", "slug", "overview"]
+    # УДАЛИТЕ ЭТУ СТРОКУ: fields = ["subject", "title", "slug", "overview"]
     success_url = reverse_lazy("manage_course_list")
 
 
@@ -47,10 +52,12 @@ class ManageCourseListView(OwnerCourseMixin, ListView):
 
 class CourseCreateView(OwnerCourseEditMixin, CreateView):
     permission_required = "courses.add_course"
+    form_class = CourseForm
 
 
 class CourseUpdateView(OwnerCourseEditMixin, UpdateView):
     permission_required = "courses.change_course"
+    form_class = CourseForm
 
 
 class CourseDeleteView(OwnerCourseMixin, DeleteView):
@@ -200,5 +207,89 @@ class CourseDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        course = self.object
+        request = self.request
+        
+        # Проверка, зачислен ли пользователь
+        is_enrolled = False
+        course_progress = 0
+        if request.user.is_authenticated:
+            is_enrolled = course.students.filter(id=request.user.id).exists()
+            # Процент завершения курса (примерная логика)
+            if is_enrolled:
+                total_modules = course.modules.count()
+                completed_modules = 0  # Здесь нужно ваша логика подсчета
+                if total_modules > 0:
+                    course_progress = (completed_modules / total_modules) * 100
+        
+        # Проверка, есть ли курс в вишлисте
+        in_wishlist = False
+        if request.user.is_authenticated:
+            try:
+                Wishlist.objects.get(user=request.user, course=course)
+                in_wishlist = True
+            except Wishlist.DoesNotExist:
+                in_wishlist = False
+        
         context["enroll_form"] = CourseEnrollForm(initial={"course": self.object})
+        context["is_enrolled"] = is_enrolled
+        context["in_wishlist"] = in_wishlist
+        context["course_progress"] = round(course_progress)
+        
+        # Добавьте дополнительные данные для красивого отображения
+        context["estimated_hours"] = course.modules.count() * 2
+        
+        total_contents = sum(module.contents.count() for module in course.modules.all())
+        if total_contents < 10:
+            context["difficulty_level"] = "Beginner"
+        elif total_contents < 20:
+            context["difficulty_level"] = "Intermediate"
+        else:
+            context["difficulty_level"] = "Advanced"
+        
+        instructor_courses = Course.objects.filter(owner=course.owner).count()
+        total_students = sum(c.students.count() for c in Course.objects.filter(owner=course.owner))
+        context["instructor_courses"] = instructor_courses
+        context["total_students"] = total_students
+        context["avg_rating"] = "4.8"
+        
+        return context
+    
+@method_decorator(csrf_exempt, name='dispatch')
+class WishlistToggleView(View):
+    def post(self, request, course_id):
+        if not request.user.is_authenticated:
+            return redirect('/accounts/login/?next=' + request.path)
+        
+        course = get_object_or_404(Course, id=course_id)
+        
+        # Переключаем вишлист
+        wishlist_item, created = Wishlist.objects.get_or_create(
+            user=request.user,
+            course=course
+        )
+        
+        if not created:  # Если уже существовал - удаляем
+            wishlist_item.delete()
+        
+        # Перенаправляем обратно или на указанный next
+        next_url = request.POST.get('next', request.META.get('HTTP_REFERER', 'wishlist_list'))
+        return redirect(next_url)
+    
+@method_decorator(login_required, name='dispatch')
+class WishlistListView(ListView):
+    model = Wishlist
+    template_name = 'courses/wishlist/list.html'
+    context_object_name = 'wishlist_items'
+    
+    def get_queryset(self):
+        return Wishlist.objects.filter(user=self.request.user).select_related('course')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Получаем ID курсов, на которые пользователь записан
+        enrolled_courses = Course.objects.filter(students=self.request.user)
+        context['enrolled_course_ids'] = [course.id for course in enrolled_courses]
+        
         return context

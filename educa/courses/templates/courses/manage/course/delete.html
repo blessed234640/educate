@@ -1,90 +1,193 @@
 {% extends "base.html" %}
 
-{% block title %}Delete "{{ object.title }}" | Educa{% endblock %}
+{% block title %}Delete "{{ object.title }}" - Educa{% endblock %}
 
-{% block content %}
-<div class="courses-container">
-  <div class="courses-header">
-    <div class="header-content">
-      <h1 class="page-title">
-        <i class="fas fa-trash-alt"></i>
-        Delete Course
-      </h1>
-      <p class="page-subtitle">Permanently remove this course from the platform</p>
-    </div>
-  </div>
-
-  <div class="auth-card module delete-confirmation">
-    <div class="module-header">
-      <div class="warning-icon">
-        <i class="fas fa-exclamation-triangle"></i>
-      </div>
-      <h2>Confirm Deletion</h2>
-      <p class="form-subtitle">This action cannot be undone</p>
-    </div>
+{% block extra_css %}
+<style>
+    .delete-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #f72585, #e11575);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+        font-size: 40px;
+        color: white;
+    }
     
-    <div class="delete-content">
-      <div class="course-to-delete">
-        <div class="course-info">
-          <div class="course-icon">
-            <i class="fas fa-graduation-cap"></i>
-          </div>
-          <div class="course-details">
-            <h3 class="course-title">{{ object.title }}</h3>
-            <div class="course-meta">
-              <span class="meta-item">
-                <i class="fas fa-book"></i>
-                {{ object.subject }}
-              </span>
-              <span class="meta-item">
-                <i class="fas fa-layer-group"></i>
-                {{ object.modules.count }} module{{ object.modules.count|pluralize }}
-              </span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="warning-message">
-          <p>
-            <i class="fas fa-info-circle"></i>
-            Deleting this course will permanently remove all associated modules and contents.
-          </p>
-        </div>
-      </div>
-      
-      <form action="" method="post" class="delete-form">
-        {% csrf_token %}
-        
-        <div class="form-actions">
-          <button type="submit" class="btn btn-danger btn-delete">
-            <i class="fas fa-trash-alt"></i>
-            <span>Delete Course</span>
-          </button>
-          
-          <a href="{% url 'manage_course_list' %}" class="btn btn-secondary btn-cancel">
-            <i class="fas fa-times"></i>
-            <span>Cancel</span>
-          </a>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 30px 0;
+    }
+    
+    .stat-card {
+        background: var(--gray-100);
+        border-radius: var(--border-radius-sm);
+        padding: 20px;
+        text-align: center;
+        border: 1px solid var(--gray-200);
+    }
+    
+    .stat-card i {
+        font-size: 24px;
+        color: var(--danger-color);
+        margin-bottom: 10px;
+    }
+    
+    .stat-card .number {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--danger-color);
+    }
+    
+    .stat-card .label {
+        font-size: 14px;
+        color: var(--gray-600);
+        margin-top: 5px;
+    }
+    
+    .consequences-list {
+        background: #fff5f5;
+        border-left: 4px solid var(--danger-color);
+        padding: 20px;
+        border-radius: var(--border-radius-sm);
+        margin: 30px 0;
+    }
+    
+    .consequences-list li {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+</style>
 {% endblock %}
 
-{% block domready %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="h4 mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Delete Course
+                    </h3>
+                </div>
+                
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="delete-icon">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <h1 class="h3 mb-2">Delete "{{ object.title }}"?</h1>
+                        <p class="text-muted">This action cannot be undone</p>
+                    </div>
+                    
+                    <div class="alert alert-danger" role="alert">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-exclamation-circle mt-1 me-3"></i>
+                            <div>
+                                <h4 class="alert-heading">Warning!</h4>
+                                <p class="mb-2">You are about to permanently delete this course and all its associated data.</p>
+                                <p class="mb-0"><strong>Total students enrolled: {{ object.students.count }}</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="consequences-list">
+                        <h5 class="h6 mb-3">
+                            <i class="fas fa-times-circle me-2 text-danger"></i>
+                            This will permanently delete:
+                        </h5>
+                        <ul class="list-unstyled">
+                            <li>
+                                <i class="fas fa-times text-danger"></i>
+                                <div>All course modules and content</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-times text-danger"></i>
+                                <div>Student progress and enrollment data</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-times text-danger"></i>
+                                <div>All uploaded files, images, and videos</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-times text-danger"></i>
+                                <div>Course statistics and analytics</div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <i class="fas fa-book"></i>
+                            <div class="number">{{ object.modules.count }}</div>
+                            <div class="label">Modules</div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-users"></i>
+                            <div class="number">{{ object.students.count }}</div>
+                            <div class="label">Enrolled Students</div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-file-alt"></i>
+                            <div class="number">{{ total_contents }}</div>
+                            <div class="label">Content Items</div>
+                        </div>
+                    </div>
+                    
+                    <form action="" method="post" id="deleteForm">
+                        {% csrf_token %}
+                        
+                        <div class="alert alert-warning" role="alert">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                                <label class="form-check-label" for="confirmDelete">
+                                    I understand that this action cannot be undone and I will lose all data associated with this course.
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-3 mt-5">
+                            <button type="submit" class="btn btn-danger btn-lg flex-grow-1" id="deleteButton" disabled>
+                                <i class="fas fa-trash-alt me-2"></i>
+                                Permanently Delete Course
+                            </button>
+                            <a href="{% url 'manage_course_list' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Add confirmation dialog for delete button
-  const deleteBtn = document.querySelector('.btn-delete');
-  if (deleteBtn) {
-    deleteBtn.addEventListener('click', function(e) {
-      const confirmed = confirm('Are you absolutely sure you want to delete this course? This action cannot be undone.');
-      if (!confirmed) {
-        e.preventDefault();
-      }
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmCheckbox = document.getElementById('confirmDelete');
+        const deleteButton = document.getElementById('deleteButton');
+        const deleteForm = document.getElementById('deleteForm');
+        
+        confirmCheckbox.addEventListener('change', function() {
+            deleteButton.disabled = !this.checked;
+        });
+        
+        deleteForm.addEventListener('submit', function(e) {
+            const confirmText = prompt('Please type "DELETE" to confirm:');
+            if (confirmText !== 'DELETE') {
+                e.preventDefault();
+                alert('Deletion cancelled. Please type "DELETE" exactly to confirm.');
+            }
+        });
     });
-  }
-});
 </script>
 {% endblock %}

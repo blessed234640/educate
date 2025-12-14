@@ -1,69 +1,66 @@
 {% extends "base.html" %}
 
-{% block title %}Log-in | Educa{% endblock %}
+{% block title %}Sign In - Educa{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-header">
-            <div class="auth-icon">
-                <i class="fas fa-user-circle"></i>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="page-header mb-4">
+                <h1><i class="fas fa-sign-in-alt text-primary me-2"></i>Sign In</h1>
+                <p class="text-muted">Welcome back! Please sign in to continue.</p>
             </div>
-            <h1 class="auth-title">Welcome Back</h1>
-            <p class="auth-subtitle">Sign in to continue your learning journey</p>
-        </div>
-        
-        <div class="auth-body">
+
             {% if form.errors %}
-            <div class="alert alert-error">
-                <i class="fas fa-exclamation-circle"></i>
-                <p>Your username and password didn't match. Please try again.</p>
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Your username and password didn't match. Please try again.
             </div>
             {% else %}
-            <p class="auth-instruction">Please enter your credentials to access your account</p>
+            <p class="mb-4">Please use the following form to sign in:</p>
             {% endif %}
-            
+
             <div class="login-form">
-                <form action="{% url 'login' %}" method="post" class="form">
+                <form action="{% url 'login' %}" method="post">
                     {% csrf_token %}
                     
-                    {% for field in form %}
-                    <div class="form-group">
-                        <label for="{{ field.id_for_label }}" class="form-label">
-                            {{ field.label }}
+                    <div class="form-group mb-3">
+                        <label for="id_username">
+                            <i class="fas fa-user me-1"></i>Username
                         </label>
-                        <div class="input-with-icon">
-                            {% if field.name == 'username' %}
-                            <i class="fas fa-user input-icon"></i>
-                            {% else %}
-                            <i class="fas fa-lock input-icon"></i>
-                            {% endif %}
-                            {{ field }}
-                        </div>
-                        {% if field.errors %}
-                        <div class="form-error">
-                            {{ field.errors }}
-                        </div>
-                        {% endif %}
+                        <input type="text" name="username" autofocus autocapitalize="none" 
+                               autocomplete="username" maxlength="150" required 
+                               id="id_username" class="form-control" 
+                               placeholder="Enter your username">
                     </div>
-                    {% endfor %}
-                    
+
+                    <div class="form-group mb-4">
+                        <label for="id_password">
+                            <i class="fas fa-lock me-1"></i>Password
+                        </label>
+                        <input type="password" name="password" 
+                               autocomplete="current-password" required 
+                               id="id_password" class="form-control" 
+                               placeholder="Enter your password">
+                    </div>
+
                     <input type="hidden" name="next" value="{{ next }}" />
                     
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary btn-full">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <span>Log In</span>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
                         </button>
                     </div>
                 </form>
             </div>
-            
-            <div class="auth-footer">
-                <p class="auth-help-text">
-                    <i class="fas fa-question-circle"></i>
-                    Need help? <a href="#" class="text-link">Contact support</a>
-                </p>
+
+            <div class="mt-4 pt-3 border-top">
+                <p class="text-center text-muted mb-2">Don't have an account?</p>
+                <div class="d-grid">
+                    <a href="{% url 'student_registration' %}" class="btn btn-secondary">
+                        <i class="fas fa-user-plus me-2"></i>Create New Account
+                    </a>
+                </div>
             </div>
         </div>
     </div>

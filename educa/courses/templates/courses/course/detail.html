@@ -1,217 +1,370 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ object.title }} | Educa{% endblock %}
+{% block title %}{{ object.title }} - Educa{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .course-hero {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 60px 0;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .course-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+    
+    .course-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+    }
+    
+    .course-title {
+        font-size: 42px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Course Stats Grid - Исправлено */
+    .course-meta-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 30px 0;
+    }
+    
+    .meta-card {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: var(--border-radius);
+        padding: 25px 20px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .meta-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .meta-icon {
+        font-size: 32px;
+        margin-bottom: 15px;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        display: inline-block;
+    }
+    
+    /* Разные цвета для иконок */
+    .meta-card:nth-child(1) .meta-icon {
+        color: #4cc9f0;
+    }
+    
+    .meta-card:nth-child(2) .meta-icon {
+        color: #7209b7;
+    }
+    
+    .meta-card:nth-child(3) .meta-icon {
+        color: #ff9e00;
+    }
+    
+    .meta-card:nth-child(4) .meta-icon {
+        color: #f72585;
+    }
+    
+    .meta-number {
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 8px;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .meta-label {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.9);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+    }
+    
+    /* Добавим декоративные элементы в карточки */
+    .meta-card::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 100px;
+        height: 100px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+    }
+    
+    /* Анимация для счетчиков */
+    @keyframes countUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .meta-card.animated .meta-number {
+        animation: countUp 0.8s ease-out forwards;
+    }
+    
+    .instructor-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 25px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--gray-200);
+        margin-bottom: 30px;
+    }
+    
+    .instructor-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        color: white;
+        margin-right: 20px;
+    }
+    
+    .module-preview {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 25px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--gray-200);
+        margin-bottom: 20px;
+    }
+    
+    .module-list {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0 0;
+    }
+    
+    .module-list li {
+        padding: 15px;
+        margin-bottom: 10px;
+        background: var(--gray-100);
+        border-radius: var(--border-radius-sm);
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .empty-modules {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--gray-500);
+    }
+    
+    .empty-modules-icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .enrollment-card {
+        position: sticky;
+        top: 100px;
+        box-shadow: var(--shadow-lg);
+        border: none;
+        overflow: hidden;
+    }
+    
+    .enrollment-header {
+        background: linear-gradient(135deg, var(--success-color), #3ab8dd);
+        color: white;
+        padding: 25px;
+        text-align: center;
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+    }
+    
+    .feature-item {
+        text-align: center;
+        padding: 15px;
+        border-radius: var(--border-radius-sm);
+        background: var(--gray-100);
+    }
+    
+    .feature-icon {
+        font-size: 20px;
+        color: var(--primary-color);
+        margin-bottom: 10px;
+    }
+    
+    .feature-label {
+        font-size: 12px;
+        color: var(--gray-600);
+    }
+    
+    .course-content {
+        line-height: 1.8;
+        font-size: 16px;
+        color: var(--gray-700);
+    }
+    
+    .course-content h2, .course-content h3 {
+        color: var(--gray-900);
+        margin-top: 30px;
+        margin-bottom: 15px;
+    }
+    
+    .course-content ul, .course-content ol {
+        padding-left: 25px;
+        margin-bottom: 20px;
+    }
+    
+    .course-content li {
+        margin-bottom: 8px;
+        position: relative;
+    }
+    
+    .course-content ul li::before {
+        content: '•';
+        color: var(--primary-color);
+        font-weight: bold;
+        position: absolute;
+        left: -15px;
+    }
+    
+    .course-content ol {
+        counter-reset: list-counter;
+    }
+    
+    .course-content ol li {
+        counter-increment: list-counter;
+    }
+    
+    .course-content ol li::before {
+        content: counter(list-counter) '.';
+        color: var(--primary-color);
+        font-weight: bold;
+        position: absolute;
+        left: -20px;
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .course-title {
+            font-size: 32px;
+        }
+        
+        .course-hero {
+            padding: 40px 0;
+        }
+        
+        .course-meta-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .meta-card {
+            padding: 20px 15px;
+        }
+        
+        .meta-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .meta-number {
+            font-size: 28px;
+        }
+        
+        .meta-label {
+            font-size: 12px;
+        }
+        
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .course-meta-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+#wishlistBtn {
+    transition: all 0.2s ease;
+}
+
+#wishlistBtn:active {
+    transform: scale(0.95);
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="course-detail-container">
-    <div class="course-detail-header">
-        <div class="course-breadcrumb">
-            <a href="{% url 'course_list' %}" class="breadcrumb-link">
-                <i class="fas fa-home"></i> Courses
-            </a>
-            
-            {% if object.subject and object.subject.slug %}
-            <i class="fas fa-chevron-right breadcrumb-separator"></i>
-            <a href="{% url 'course_list_subject' object.subject.slug %}" class="breadcrumb-link">
-                {{ object.subject.title }}
-            </a>
-            {% endif %}
-            
-            <i class="fas fa-chevron-right breadcrumb-separator"></i>
-            <span class="breadcrumb-current">{{ object.title|truncatechars:40 }}</span>
-        </div>
-        
-        <div class="course-title-section">
-            <div class="course-title-badge">
-                <i class="fas fa-graduation-cap"></i>
-            </div>
-            <div class="course-title-content">
-                <h1 class="course-title">{{ object.title }}</h1>
-                <div class="course-meta">
-                    <div class="course-meta-item">
-                        <i class="fas fa-book"></i>
-                        <span>{{ object.modules.count }} modules</span>
-                    </div>
-                    <div class="course-meta-item">
-                        <i class="fas fa-user-tie"></i>
-                        <span>{{ object.owner.get_full_name }}</span>
-                    </div>
-                    {% if object.subject %}
-                    <a href="{% url 'course_list_subject' object.subject.slug %}" class="course-subject-tag">
-                        <i class="fas fa-tag"></i>
-                        {{ object.subject.title }}
+{% with subject=object.subject %}
+<!-- Hero Section -->
+<div class="course-hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="subject-badge mb-3">
+                    <a href="{% url "course_list_subject" subject.slug %}" 
+                       class="badge bg-white text-primary text-decoration-none px-3 py-2">
+                        <i class="fas fa-tag me-2"></i>{{ subject.title }}
                     </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="course-detail-grid">
-        <div class="course-content-card">
-            <div class="course-card-header">
-                <h2 class="card-title">
-                    <i class="fas fa-info-circle"></i>
-                    Course Overview
-                </h2>
-                <div class="card-actions">
-                    <div class="enrollment-status">
-                        {% if user in object.students.all %}
-                        <span class="enrolled-badge">
-                            <i class="fas fa-check-circle"></i>
-                            Enrolled
-                        </span>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            
-            <div class="course-card-body">
-                <div class="course-overview">
-                    {{ object.overview|linebreaks }}
                 </div>
                 
-                {% if object.modules.all %}
-                <div class="modules-preview">
-                    <h3 class="modules-title">
-                        <i class="fas fa-list-ol"></i>
-                        Course Modules
-                    </h3>
-                    <div class="modules-list">
-                        {% for module in object.modules.all|slice:":5" %}
-                        <div class="module-item">
-                            <div class="module-number">
-                                <span>{{ forloop.counter }}</span>
-                            </div>
-                            <div class="module-content">
-                                <h4 class="module-title">{{ module.title }}</h4>
-                                <p class="module-description">{{ module.description|truncatewords:30 }}</p>
-                            </div>
-                        </div>
-                        {% endfor %}
-                        {% if object.modules.count > 5 %}
-                        <div class="modules-more">
-                            <i class="fas fa-ellipsis-h"></i>
-                            {{ object.modules.count|add:"-5" }} more module{{ object.modules.count|add:"-5"|pluralize }}
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="course-sidebar">
-            <div class="enrollment-card">
-                <div class="enrollment-header">
-                    <h3 class="enrollment-title">
-                        <i class="fas fa-rocket"></i>
-                        Get Started
-                    </h3>
-                    <p class="enrollment-subtitle">Begin your learning journey</p>
-                </div>
+                <h1 class="course-title">{{ object.title }}</h1>
                 
-                <div class="enrollment-content">
-                    {% if request.user.is_authenticated %}
-                        {% if user not in object.students.all %}
-                        <form action="{% url 'student_enroll_course' %}" method="post" class="enrollment-form">
-                            {% csrf_token %}
-                            <input type="hidden" name="course" value="{{ object.id }}">
-                            
-                            <div class="enrollment-features">
-                                <div class="feature-item">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Full course access</span>
-                                </div>
-                                <div class="feature-item">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>All {{ object.modules.count }} modules</span>
-                                </div>
-                                <div class="feature-item">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Certificate upon completion</span>
-                                </div>
-                                <div class="feature-item">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Lifetime access</span>
-                                </div>
-                            </div>
-                            
-                            <button type="submit" class="btn-enroll">
-                                <i class="fas fa-user-plus"></i>
-                                Enroll Now
-                            </button>
-                            
-                            <p class="enrollment-note">
-                                <i class="fas fa-info-circle"></i>
-                                No payment required
-                            </p>
-                        </form>
-                        {% else %}
-                        <div class="already-enrolled">
-                            <div class="enrolled-icon">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <h4 class="enrolled-title">You're Enrolled!</h4>
-                            <p class="enrolled-message">
-                                You can access all course materials from your dashboard.
-                            </p>
-                            <a href="{% url 'student_course_detail' object.id %}" class="btn-access-course">
-                              
-                                <i class="fas fa-play-circle"></i>
-                                Access Course
-                            </a>
-                        </div>
-                        {% endif %}
-                    {% else %}
-                        <div class="guest-enrollment">
-                            <div class="guest-icon">
-                                <i class="fas fa-user-graduate"></i>
-                            </div>
-                            <h4 class="guest-title">Join Educa to Enroll</h4>
-                            <p class="guest-message">
-                                Create a free account to access this course and thousands of others.
-                            </p>
-                            <a href="{% url 'student_registration' %}" class="btn-register">
-                                <i class="fas fa-user-plus"></i>
-                                Register Now
-                            </a>
-                            <p class="login-link">
-                                Already have an account? 
-                                <a href="{% url 'login' %}">Sign In</a>
-                            </p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="instructor-card">
-                <div class="instructor-header">
-                    <h3 class="instructor-title">
-                        <i class="fas fa-user-tie"></i>
-                        Instructor
-                    </h3>
-                </div>
-                <div class="instructor-content">
-                    <div class="instructor-profile">
+                <p class="lead mb-4" style="opacity: 0.9;">
+                    {{ object.overview|striptags|truncatewords:30 }}
+                </p>
+                
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center">
                         <div class="instructor-avatar">
-                            <i class="fas fa-user"></i>
+                            {{ object.owner.first_name|first|default:"I" }}{{ object.owner.last_name|first|default:"N" }}
                         </div>
-                        <div class="instructor-info">
-                            <h4 class="instructor-name">{{ object.owner.get_full_name }}</h4>
-                            <p class="instructor-title">Course Instructor</p>
+                        <div>
+                            <div class="fw-semibold">Instructor</div>
+                            <div>{{ object.owner.get_full_name|default:object.owner.username }}</div>
                         </div>
                     </div>
-                    <div class="instructor-stats">
-                        <div class="stat-item">
-                            <div class="stat-value">{{ object.owner.owned_courses.count }}</div>
-                            <div class="stat-label">Courses</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">{{ object.students.count }}</div>
-                            <div class="stat-label">Students</div>
-                        </div>
+                    <div class="vr" style="height: 40px; opacity: 0.3;"></div>
+                    <div>
+                        <div class="fw-semibold">Created</div>
+                        <div>{{ object.created|date:"F d, Y" }}</div>
                     </div>
                 </div>
             </div>
@@ -219,714 +372,423 @@
     </div>
 </div>
 
-<style>
-/* ============================================
-   СТИЛИ ДЛЯ ДЕТАЛЬНОЙ СТРАНИЦЫ КУРСА
-   ============================================ */
-
-.course-detail-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem;
-    animation: fadeIn 0.5s ease-out;
-}
-
-/* Заголовок курса */
-.course-detail-header {
-    margin-bottom: 2rem;
-}
-
-.course-breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 2rem;
-    padding: 1rem 1.5rem;
-    background: #f9fafb;
-    border-radius: 0.75rem;
-    border: 1px solid #e5e7eb;
-}
-
-.breadcrumb-link {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #4f46e5;
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: color 150ms ease;
-}
-
-.breadcrumb-link:hover {
-    color: #4338ca;
-    text-decoration: underline;
-}
-
-.breadcrumb-link i {
-    font-size: 0.875rem;
-}
-
-.breadcrumb-separator {
-    color: #9ca3af;
-    font-size: 0.75rem;
-}
-
-.breadcrumb-current {
-    color: #1f2937;
-    font-size: 0.875rem;
-    font-weight: 600;
-    max-width: 300px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.course-title-section {
-    display: flex;
-    align-items: flex-start;
-    gap: 1.5rem;
-    padding: 1.5rem;
-    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-    border-radius: 1rem;
-    border: 1px solid #e2e8f0;
-}
-
-.course-title-badge {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #4f46e5, #818cf8);
-    border-radius: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
-}
-
-.course-title-badge i {
-    color: white;
-    font-size: 1.5rem;
-}
-
-.course-title-content {
-    flex: 1;
-}
-
-.course-title {
-    font-family: "Poppins", sans-serif;
-    font-size: 2rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 1rem;
-    line-height: 1.2;
-}
-
-.course-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    align-items: center;
-}
-
-.course-meta-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    color: #4b5563;
-}
-
-.course-meta-item i {
-    color: #4f46e5;
-    font-size: 0.875rem;
-}
-
-.course-subject-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: rgba(79, 70, 229, 0.1);
-    color: #4f46e5;
-    border-radius: 0.5rem;
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 150ms ease;
-}
-
-.course-subject-tag:hover {
-    background: rgba(79, 70, 229, 0.2);
-    transform: translateY(-1px);
-}
-
-/* Сетка контента */
-.course-detail-grid {
-    display: grid;
-    grid-template-columns: 1fr 400px;
-    gap: 2rem;
-}
-
-@media (max-width: 1024px) {
-    .course-detail-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Основной контент */
-.course-content-card {
-    background: white;
-    border-radius: 1rem;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-}
-
-.course-card-header {
-    padding: 1.5rem;
-    background: linear-gradient(135deg, #f9fafb, #f3f4f6);
-    border-bottom: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.card-title {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin: 0;
-}
-
-.card-title i {
-    color: #4f46e5;
-    font-size: 1.25rem;
-}
-
-.card-actions {
-    display: flex;
-    align-items: center;
-}
-
-.enrolled-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: #10b981;
-    color: white;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-.enrolled-badge i {
-    font-size: 0.875rem;
-}
-
-.course-card-body {
-    padding: 1.5rem;
-}
-
-.course-overview {
-    color: #4b5563;
-    line-height: 1.7;
-    font-size: 1rem;
-    margin-bottom: 2rem;
-}
-
-.course-overview p {
-    margin-bottom: 1rem;
-}
-
-.modules-preview {
-    margin-top: 2rem;
-}
-
-.modules-title {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 2px solid #f3f4f6;
-}
-
-.modules-title i {
-    color: #4f46e5;
-}
-
-.modules-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.module-item {
-    display: flex;
-    gap: 1rem;
-    padding: 1rem;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.75rem;
-    transition: all 150ms ease;
-}
-
-.module-item:hover {
-    border-color: #4f46e5;
-    transform: translateX(4px);
-    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.module-number {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #4f46e5, #818cf8);
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    color: white;
-    font-weight: 600;
-    font-size: 0.875rem;
-}
-
-.module-content {
-    flex: 1;
-}
-
-.module-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 0.5rem;
-}
-
-.module-description {
-    color: #6b7280;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    margin: 0;
-}
-
-.modules-more {
-    text-align: center;
-    padding: 1rem;
-    color: #6b7280;
-    font-size: 0.875rem;
-    background: #f9fafb;
-    border-radius: 0.5rem;
-    border: 1px dashed #d1d5db;
-}
-
-.modules-more i {
-    margin-right: 0.5rem;
-}
-
-/* Сайдбар */
-.course-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.enrollment-card, .instructor-card {
-    background: white;
-    border-radius: 1rem;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-}
-
-.enrollment-header, .instructor-header {
-    padding: 1.5rem;
-    background: linear-gradient(135deg, #4f46e5, #818cf8);
-    color: white;
-}
-
-.enrollment-title, .instructor-title {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin: 0 0 0.5rem 0;
-}
-
-.enrollment-subtitle {
-    font-size: 0.875rem;
-    opacity: 0.9;
-    margin: 0;
-}
-
-.enrollment-content, .instructor-content {
-    padding: 1.5rem;
-}
-
-/* Форма записи */
-.enrollment-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.enrollment-features {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.feature-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    color: #4b5563;
-    font-size: 0.875rem;
-}
-
-.feature-item i {
-    color: #10b981;
-    font-size: 0.875rem;
-}
-
-.btn-enroll {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    width: 100%;
-    padding: 1rem;
-    background: linear-gradient(135deg, #10b981, #34d399);
-    color: white;
-    border: none;
-    border-radius: 0.75rem;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 250ms ease;
-    font-family: inherit;
-}
-
-.btn-enroll:hover {
-    background: linear-gradient(135deg, #0d9668, #10b981);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
-}
-
-.enrollment-note {
-    text-align: center;
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.enrollment-note i {
-    color: #4f46e5;
-}
-
-/* Уже записан */
-.already-enrolled {
-    text-align: center;
-    padding: 1rem 0;
-}
-
-.enrolled-icon {
-    width: 64px;
-    height: 64px;
-    margin: 0 auto 1rem;
-    background: linear-gradient(135deg, #10b981, #34d399);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.enrolled-icon i {
-    color: white;
-    font-size: 1.5rem;
-}
-
-.enrolled-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 0.5rem;
-}
-
-.enrolled-message {
-    color: #6b7280;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    margin-bottom: 1.5rem;
-}
-
-.btn-access-course {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    width: 100%;
-    padding: 1rem;
-    background: linear-gradient(135deg, #4f46e5, #818cf8);
-    color: white;
-    border-radius: 0.75rem;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 250ms ease;
-}
-
-.btn-access-course:hover {
-    background: linear-gradient(135deg, #4338ca, #4f46e5);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
-}
-
-/* Гостевой доступ */
-.guest-enrollment {
-    text-align: center;
-    padding: 1rem 0;
-}
-
-.guest-icon {
-    width: 64px;
-    height: 64px;
-    margin: 0 auto 1rem;
-    background: linear-gradient(135deg, #f59e0b, #fbbf24);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.guest-icon i {
-    color: white;
-    font-size: 1.5rem;
-}
-
-.guest-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 0.5rem;
-}
-
-.guest-message {
-    color: #6b7280;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    margin-bottom: 1.5rem;
-}
-
-.btn-register {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    width: 100%;
-    padding: 1rem;
-    background: linear-gradient(135deg, #4f46e5, #818cf8);
-    color: white;
-    border-radius: 0.75rem;
-    text-decoration: none;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    transition: all 250ms ease;
-}
-
-.btn-register:hover {
-    background: linear-gradient(135deg, #4338ca, #4f46e5);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
-}
-
-.login-link {
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
-.login-link a {
-    color: #4f46e5;
-    font-weight: 500;
-    text-decoration: none;
-}
-
-.login-link a:hover {
-    text-decoration: underline;
-}
-
-/* Карточка инструктора */
-.instructor-content {
-    padding: 1.5rem;
-}
-
-.instructor-profile {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.instructor-avatar {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.instructor-avatar i {
-    color: #6b7280;
-    font-size: 1.5rem;
-}
-
-.instructor-info {
-    flex: 1;
-}
-
-.instructor-name {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 0.25rem;
-}
-
-.instructor-title {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin: 0;
-}
-
-.instructor-stats {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    padding: 1rem;
-    background: #f9fafb;
-    border-radius: 0.75rem;
-    border: 1px solid #e5e7eb;
-}
-
-.stat-item {
-    text-align: center;
-}
-
-.stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #4f46e5;
-    line-height: 1;
-    margin-bottom: 0.25rem;
-}
-
-.stat-label {
-    font-size: 0.75rem;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-/* Анимация */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
-    .course-detail-container {
-        padding: 1rem;
-    }
-    
-    .course-title-section {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .course-title {
-        font-size: 1.5rem;
-    }
-    
-    .course-meta {
-        justify-content: center;
-    }
-    
-    .course-breadcrumb {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-    
-    .breadcrumb-current {
-        max-width: 200px;
-    }
-}
-
-@media (max-width: 480px) {
-    .course-title-badge {
-        width: 48px;
-        height: 48px;
-    }
-    
-    .course-title-badge i {
-        font-size: 1.25rem;
-    }
-    
-    .module-item {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .module-number {
-        margin: 0 auto;
-    }
-}
-</style>
+<div class="container">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Course Stats -->
+            <div class="course-meta-grid">
+                <div class="meta-card">
+                    <div class="meta-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <div class="meta-number">{{ object.modules.count }}</div>
+                    <div class="meta-label">Modules</div>
+                </div>
+                
+                <div class="meta-card">
+                    <div class="meta-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="meta-number">{{ object.students.count }}</div>
+                    <div class="meta-label">Students Enrolled</div>
+                </div>
+                
+                <div class="meta-card">
+                    <div class="meta-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="meta-number">{{ estimated_hours }}h</div>
+                    <div class="meta-label">Estimated Time</div>
+                </div>
+                
+                <div class="meta-card">
+                    <div class="meta-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="meta-number">{{ difficulty_level }}</div>
+                    <div class="meta-label">Level</div>
+                </div>
+            </div>
+
+            <!-- Course Overview -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h3 class="h5 mb-0">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Course Overview
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="course-content">
+                        {{ object.overview|safe }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Modules Preview -->
+            <div class="card mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h3 class="h5 mb-0">
+                        <i class="fas fa-list-ol text-primary me-2"></i>
+                        Course Curriculum
+                    </h3>
+                    <span class="badge bg-primary">{{ object.modules.count }} modules</span>
+                </div>
+                <div class="card-body">
+                    {% if object.modules.all %}
+                    <div class="module-preview">
+                        <p class="text-muted mb-3">Here's what you'll learn in this course:</p>
+                        <ul class="module-list">
+                            {% for module in object.modules.all|slice:":5" %}
+                            <li>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-light text-dark me-2">
+                                            Module {{ module.order|add:1 }}
+                                        </span>
+                                        <strong>{{ module.title }}</strong>
+                                    </div>
+                                    <span class="badge bg-light text-dark">
+                                        {{ module.contents.count }} lessons
+                                    </span>
+                                </div>
+                                {% if module.description %}
+                                <p class="text-muted small mt-2 mb-0">{{ module.description|truncatechars:100 }}</p>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        
+                        {% if object.modules.count > 5 %}
+                        <div class="text-center mt-4">
+                            <button class="btn btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#allModules">
+                                Show all {{ object.modules.count }} modules
+                                <i class="fas fa-chevron-down ms-2"></i>
+                            </button>
+                            
+                            <div class="collapse mt-3" id="allModules">
+                                <ul class="module-list">
+                                    {% for module in object.modules.all|slice:"5:" %}
+                                    <li>
+                                        <span class="badge bg-light text-dark me-2">
+                                            Module {{ module.order|add:1 }}
+                                        </span>
+                                        <strong>{{ module.title }}</strong>
+                                        {% if module.description %}
+                                        <p class="text-muted small mt-2 mb-0">{{ module.description|truncatechars:100 }}</p>
+                                        {% endif %}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="empty-modules">
+                        <div class="empty-modules-icon">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <h4 class="h5 mb-3">No modules yet</h4>
+                        <p class="text-muted">The instructor is preparing the course content.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Instructor Profile -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h3 class="h5 mb-0">
+                        <i class="fas fa-user-tie text-primary me-2"></i>
+                        About the Instructor
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="instructor-card">
+                        <div class="d-flex align-items-start">
+                            <div class="instructor-avatar">
+                                {{ object.owner.first_name|first|default:"I" }}{{ object.owner.last_name|first|default:"N" }}
+                            </div>
+                            <div style="flex-grow: 1;">
+                                <h4 class="h5 mb-1">{{ object.owner.get_full_name|default:object.owner.username }}</h4>
+                                <p class="text-muted mb-3">
+                                    <i class="fas fa-graduation-cap me-1"></i>
+                                    Course Instructor
+                                </p>
+                                
+                                <div class="instructor-stats d-flex gap-4 mb-3">
+                                    <div>
+                                        <div class="fw-bold">{{ instructor_courses }}</div>
+                                        <div class="text-muted small">Courses</div>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ total_students }}</div>
+                                        <div class="text-muted small">Students</div>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ avg_rating|default:"5.0" }}/5</div>
+                                        <div class="text-muted small">Rating</div>
+                                    </div>
+                                </div>
+                                
+                                <p class="mb-0">
+                                    {% if object.owner.profile.bio %}
+                                        {{ object.owner.profile.bio|truncatechars:200 }}
+                                    {% else %}
+                                        Experienced instructor with a passion for teaching and sharing knowledge.
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar - Enrollment Card -->
+        <div class="col-lg-4">
+            <div class="card enrollment-card">
+                {% if request.user.is_authenticated %}
+                    {% if is_enrolled %}
+                    <!-- Пользователь уже зачислен -->
+                    <div class="enrollment-header bg-success">
+                        <i class="fas fa-check-circle fa-3x mb-3"></i>
+                        <h3 class="h4 mb-2">Already Enrolled</h3>
+                        <p class="mb-0">You're already a student of this course</p>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="d-grid gap-3">
+                            <a href="{% url 'student_course_detail' object.id %}" 
+                            class="btn btn-success btn-lg py-3">
+                                <i class="fas fa-play-circle me-2"></i>
+                                Continue Learning
+                            </a>
+                            
+                            <a href="{% url 'student_course_list' %}" class="btn btn-outline-success">
+                                <i class="fas fa-book me-2"></i>
+                                My Courses
+                            </a>
+                            
+                            <form method="post" action="{% url 'wishlist_toggle' object.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn {% if in_wishlist %}btn-danger{% else %}btn-outline-primary{% endif %}">
+                                    <i class="fas fa-heart me-2"></i>
+                                    {% if in_wishlist %}
+                                        Remove from Wishlist
+                                    {% else %}
+                                        Add to Wishlist
+                                    {% endif %}
+                                </button>
+                            </form>
+                            
+                            <div class="progress mt-4" style="height: 8px;">
+                                <div class="progress-bar bg-success" 
+                                    style="width: {{ course_progress|default:'0' }}%">
+                                </div>
+                            </div>
+                            <p class="text-center small text-muted mt-2">
+                                {{ course_progress|default:'0' }}% Complete
+                            </p>
+                        </div>
+                    </div>
+                    
+                    {% else %}
+                    <!-- Пользователь не зачислен -->
+                    <div class="enrollment-header">
+                        <i class="fas fa-graduation-cap fa-3x mb-3"></i>
+                        <h3 class="h4 mb-2">Start Learning</h3>
+                        <p class="mb-0">Join {{ object.students.count|add:'1'|default:'1' }} students already enrolled</p>
+                    </div>
+                    
+                    <div class="card-body">
+                        <form action="{% url 'student_enroll_course' %}" method="post" id="enrollForm">
+                            {% csrf_token %}
+                            {{ enroll_form }}
+                            
+                            <div class="d-grid gap-3">
+                                <button type="submit" class="btn btn-primary btn-lg py-3">
+                                    <i class="fas fa-play-circle me-2"></i>
+                                    Enroll Now
+                                </button>
+                                
+                                <!-- Wishlist кнопка -->
+                                <button type="button" 
+                                        class="btn {% if in_wishlist %}btn-danger{% else %}btn-outline-primary{% endif %}" 
+                                        id="wishlistBtn"
+                                        data-course-id="{{ object.id }}"
+                                        data-in-wishlist="{{ in_wishlist|yesno:'true,false' }}">
+                                    <i class="fas fa-heart me-2"></i>
+                                    {% if in_wishlist %}
+                                        Remove from Wishlist
+                                    {% else %}
+                                        Add to Wishlist
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    {% endif %}
+                {% else %}
+                <!-- Неавторизованный пользователь -->
+                <div class="enrollment-header">
+                    <i class="fas fa-graduation-cap fa-3x mb-3"></i>
+                    <h3 class="h4 mb-2">Start Learning</h3>
+                    <p class="mb-0">Join {{ object.students.count|add:'1'|default:'1' }} students already enrolled</p>
+                </div>
+                
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-lock fa-3x text-muted mb-3"></i>
+                        <h4 class="h5 mb-2">Join to Enroll</h4>
+                        <p class="text-muted">Create an account to start this course</p>
+                    </div>
+                    
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'student_registration' %}" class="btn btn-primary btn-lg py-3">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Create Free Account
+                        </a>
+                        
+                        <a href="{% url 'login' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Sign In
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="mt-4 pt-3 border-top">
+                    <div class="features-grid">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-certificate"></i>
+                            </div>
+                            <div class="feature-label">Certificate</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-infinity"></i>
+                            </div>
+                            <div class="feature-label">Lifetime Access</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <div class="feature-label">Mobile Friendly</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span><i class="fas fa-clock me-1"></i> Self-paced</span>
+                        <span><i class="fas fa-comments me-1"></i> Q&A Support</span>
+                        <span><i class="fas fa-download me-1"></i> Resources</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer bg-light">
+                <div class="text-center small text-muted">
+                <i class="fas fa-shield-alt me-1"></i>
+                30-day money-back guarantee
+            </div>
+        </div>
+    </div>
+</div>
+{% endwith %}
+{% endblock %}
 
 {% block domready %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Плавная прокрутка к модулям
-        const moduleItems = document.querySelectorAll('.module-item');
-        moduleItems.forEach((item, index) => {
-            item.style.animationDelay = `${index * 100}ms`;
-        });
+        const wishlistBtn = document.getElementById('wishlistBtn');
         
-        // Анимация при наведении на кнопки
-        const buttons = document.querySelectorAll('.btn-enroll, .btn-access-course, .btn-register');
-        buttons.forEach(button => {
-            button.addEventListener('mouseenter', () => {
-                button.style.transform = 'translateY(-2px)';
-            });
-            button.addEventListener('mouseleave', () => {
-                button.style.transform = 'translateY(0)';
-            });
+        if (!wishlistBtn) {
+            console.warn('Wishlist button not found');
+            return;
+        }
+        
+        // Проверяем авторизацию
+        const isAuthenticated = {{ request.user.is_authenticated|yesno:"true,false" }};
+        console.log('User authenticated:', isAuthenticated);
+        
+        if (!isAuthenticated) {
+            // Если не авторизован, делаем кнопку неактивной
+            wishlistBtn.disabled = true;
+            wishlistBtn.title = 'Please login to use wishlist';
+            wishlistBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Login Required';
+            return;
+        }
+        
+        wishlistBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            const courseId = this.getAttribute('data-course-id');
+            const originalHTML = this.innerHTML;
+            
+            // Показываем загрузку
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>';
+            this.disabled = true;
+            
+            try {
+                // Используем FormData для правильной отправки CSRF
+                const formData = new FormData();
+                formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                
+                const response = await fetch(`/course/wishlist/toggle/${courseId}/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                // Получаем текст ответа для отладки
+                const responseText = await response.text();
+                console.log('Raw response:', responseText.substring(0, 200));
+                
+                // Проверяем, это JSON или HTML
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (jsonError) {
+                    console.error('Not JSON! Response starts with:', responseText.substring(0, 100));
+                    
+                    // Если это HTML, значит сервер вернул ошибку
+                    if (responseText.includes('<html') || responseText.includes('<!DOCTYPE')) {
+                        throw new Error('Server returned HTML page instead of JSON. Check authentication.');
+                    }
+                    throw jsonError;
+                }
+                
+                // Проверяем статус ответа
+                if (!response.ok) {
+                    throw new Error(data.error || `Server error: ${response.status}`);
+                }
+                
+                // Успех! Обновляем UI
+                alert(data.added ? 'Added to wishlist!' : 'Removed from wishlist!');
+                
+                // Перезагружаем страницу для обновления состояния
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error: ' + error.message);
+                
+                // Восстанавливаем кнопку
+                this.innerHTML = originalHTML;
+                this.disabled = false;
+            }
         });
     });
 </script>
-{% endblock %}
 {% endblock %}

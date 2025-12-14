@@ -1,587 +1,378 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}My Courses | Educa{% endblock %}
+{% block title %}My Courses - Educa{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Стили для страницы "My Courses" */
+    .my-courses-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 60px 0;
+        border-radius: var(--border-radius);
+        margin-bottom: 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .my-courses-header::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 150px;
+        height: 150px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+    
+    .my-courses-header::after {
+        content: '';
+        position: absolute;
+        bottom: -30px;
+        left: -30px;
+        width: 100px;
+        height: 100px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+    }
+    
+    .my-courses-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .my-courses-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .my-courses-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+    
+    /* Сетка курсов */
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .course-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        border: 1px solid var(--gray-200);
+    }
+    
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-color);
+    }
+    
+    .course-card-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 25px;
+        position: relative;
+        flex-shrink: 0;
+    }
+    
+    .course-card-header h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+    
+    .course-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        backdrop-filter: blur(5px);
+    }
+    
+    .course-card-body {
+        padding: 25px;
+        flex-grow: 1;
+    }
+    
+    .course-meta {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+        font-size: 14px;
+        color: var(--gray-600);
+        flex-wrap: wrap;
+    }
+    
+    .course-meta span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .course-meta i {
+        color: var(--primary-color);
+    }
+    
+    .course-description {
+        color: var(--gray-700);
+        line-height: 1.6;
+        margin-bottom: 20px;
+        font-size: 15px;
+    }
+    
+    .course-progress {
+        margin-top: 20px;
+    }
+    
+    .progress-text {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: var(--gray-600);
+    }
+    
+    .progress-bar {
+        height: 8px;
+        background: var(--gray-200);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(135deg, var(--success-color), #2ea44f);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+    
+    .course-card-footer {
+        padding: 20px 25px;
+        background: var(--gray-100);
+        border-top: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: flex-end;
+        flex-shrink: 0;
+    }
+    
+    .btn-access {
+        background: var(--primary-color);
+        color: white;
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+    }
+    
+    .btn-access:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+        color: white;
+    }
+    
+    /* Пустое состояние */
+    .empty-courses {
+        text-align: center;
+        padding: 80px 20px;
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .empty-courses-icon {
+        font-size: 72px;
+        color: var(--primary-color);
+        opacity: 0.3;
+        margin-bottom: 20px;
+    }
+    
+    .empty-courses h3 {
+        color: var(--gray-800);
+        margin-bottom: 15px;
+    }
+    
+    .empty-courses p {
+        color: var(--gray-600);
+        margin-bottom: 30px;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+    }
+    
+    .btn-browse {
+        background: var(--primary-color);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+    }
+    
+    .btn-browse:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+        color: white;
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 992px) {
+        .courses-grid {
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .my-courses-header {
+            padding: 40px 0;
+        }
+        
+        .my-courses-icon {
+            font-size: 48px;
+        }
+        
+        .my-courses-header h1 {
+            font-size: 2rem;
+        }
+        
+        .courses-grid {
+            grid-template-columns: 1fr;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .course-card-header,
+        .course-card-body,
+        .course-card-footer {
+            padding: 20px;
+        }
+        
+        .course-meta {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .btn-access {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="my-courses-container">
+<div class="container">
     <!-- Заголовок -->
     <div class="my-courses-header">
-        <div class="header-content">
-            <h1 class="page-title">
-                <i class="fas fa-graduation-cap"></i>
-                My Learning
-            </h1>
-            <p class="page-subtitle">Track your progress and continue learning</p>
+        <div class="my-courses-icon">
+            <i class="fas fa-book-open"></i>
         </div>
-        <div class="header-actions">
-            <a href="{% url 'course_list' %}" class="btn-browse-courses">
-                <i class="fas fa-plus-circle"></i>
-                Browse More Courses
-            </a>
-        </div>
+        <h1>My Courses</h1>
+        <p>Continue your learning journey</p>
     </div>
-
-    <!-- Статистика -->
-    <div class="learning-stats">
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-book-open"></i>
-            </div>
-            <div class="stat-info">
-                <div class="stat-value">{{ object_list|length }}</div>
-                <div class="stat-label">Enrolled Courses</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-clock"></i>
-            </div>
-            <div class="stat-info">
-                <div class="stat-value">0</div>
-                <div class="stat-label">Learning Hours</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-trophy"></i>
-            </div>
-            <div class="stat-info">
-                <div class="stat-value">0</div>
-                <div class="stat-label">Certificates</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Список курсов -->
+    
     {% if object_list %}
-    <div class="my-courses-grid">
+    <div class="courses-grid">
         {% for course in object_list %}
         <div class="course-card">
             <div class="course-card-header">
-                <div class="course-badge">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
-                <div class="course-title-section">
-                    <h3 class="course-title">{{ course.title }}</h3>
-                    <div class="course-meta">
-                        <div class="course-meta-item">
-                            <i class="fas fa-book"></i>
-                            <span>{{ course.modules.count }} modules</span>
-                        </div>
-                        <div class="course-meta-item">
-                            <i class="fas fa-user-tie"></i>
-                            <span>{{ course.owner.get_full_name }}</span>
-                        </div>
-                    </div>
-                </div>
+                <h3>{{ course.title }}</h3>
+                <span class="course-badge">{{ course.modules.count }} modules</span>
             </div>
             
             <div class="course-card-body">
+                <div class="course-meta">
+                    <span>
+                        <i class="fas fa-tag"></i>
+                        {{ course.subject.title }}
+                    </span>
+                    <span>
+                        <i class="fas fa-user-tie"></i>
+                        {{ course.owner.get_full_name|default:course.owner.username }}
+                    </span>
+                    <span>
+                        <i class="fas fa-clock"></i>
+                        {{ course.modules.count|add:course.modules.count }} hours
+                    </span>
+                </div>
+                
                 <p class="course-description">
-                    {{ course.overview|truncatewords:30 }}
+                    {{ course.overview|striptags|truncatewords:30 }}
                 </p>
                 
+                <!-- Прогресс курса (можно добавить реальный прогресс позже) -->
                 <div class="course-progress">
-                    <div class="progress-info">
-                        <span class="progress-label">Your Progress</span>
-                        <span class="progress-percentage">0%</span>
+                    <div class="progress-text">
+                        <span>Progress</span>
+                        <span>25%</span> <!-- Пример, заменить на реальные данные -->
                     </div>
                     <div class="progress-bar">
-                        <div class="progress-fill"></div>
+                        <div class="progress-fill" style="width: 25%"></div>
                     </div>
                 </div>
             </div>
             
             <div class="course-card-footer">
-                <a href="{% url 'student_course_detail' course.id %}" class="btn-continue-course">
-                    <i class="fas fa-play-circle"></i>
-                    Continue Learning
+                <a href="{% url 'student_course_detail' course.id %}" class="btn-access">
+                    <i class="fas fa-play-circle"></i> Continue Learning
                 </a>
-                <div class="course-actions">
-                    <button class="btn-action btn-favorite" title="Add to favorites">
-                        <i class="far fa-heart"></i>
-                    </button>
-                    <button class="btn-action btn-share" title="Share course">
-                        <i class="fas fa-share-alt"></i>
-                    </button>
-                </div>
             </div>
         </div>
         {% endfor %}
     </div>
+    
     {% else %}
-    <div class="empty-state">
-        <div class="empty-state-icon">
-            <i class="fas fa-book-open"></i>
+    <!-- Пустой список курсов -->
+    <div class="empty-courses">
+        <div class="empty-courses-icon">
+            <i class="fas fa-graduation-cap"></i>
         </div>
-        <h2 class="empty-state-title">No Courses Yet</h2>
-        <p class="empty-state-description">
-            You haven't enrolled in any courses yet. Browse our catalog and start your learning journey today!
+        <h3>No courses yet</h3>
+        <p>
+            You are not enrolled in any courses yet. Browse our catalog and 
+            find interesting courses to start your learning journey.
         </p>
-        <a href="{% url 'course_list' %}" class="btn-empty">
-            <i class="fas fa-search"></i>
-            Browse Courses
+        <a href="{% url 'course_list' %}" class="btn-browse">
+            <i class="fas fa-search"></i> Browse Courses
         </a>
     </div>
     {% endif %}
 </div>
-
-<style>
-/* ============================================
-   СТИЛИ ДЛЯ МОИХ КУРСОВ
-   ============================================ */
-
-.my-courses-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem;
-}
-
-/* Заголовок */
-.my-courses-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 3rem;
-    padding-bottom: 2rem;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-@media (max-width: 768px) {
-    .my-courses-header {
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-}
-
-.header-content {
-    flex: 1;
-}
-
-.page-title {
-    font-family: "Poppins", sans-serif;
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.page-title i {
-    color: #4f46e5;
-    font-size: 2rem;
-}
-
-.page-subtitle {
-    color: #6b7280;
-    font-size: 1rem;
-    margin: 0;
-}
-
-.header-actions {
-    flex-shrink: 0;
-}
-
-.btn-browse-courses {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 1.5rem;
-    background: linear-gradient(135deg, #4f46e5, #818cf8);
-    color: white;
-    border-radius: 0.75rem;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 250ms ease;
-}
-
-.btn-browse-courses:hover {
-    background: linear-gradient(135deg, #4338ca, #4f46e5);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
-}
-
-.btn-browse-courses i {
-    font-size: 1.125rem;
-}
-
-/* Статистика */
-.learning-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 3rem;
-}
-
-.stat-card {
-    background: white;
-    border-radius: 1rem;
-    border: 1px solid #e5e7eb;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    transition: all 150ms ease;
-}
-
-.stat-card:hover {
-    border-color: #4f46e5;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
-}
-
-.stat-icon {
-    width: 56px;
-    height: 56px;
-    background: linear-gradient(135deg, #4f46e5, #818cf8);
-    border-radius: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.stat-icon i {
-    color: white;
-    font-size: 1.5rem;
-}
-
-.stat-info {
-    flex: 1;
-}
-
-.stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #1f2937;
-    line-height: 1;
-    margin-bottom: 0.25rem;
-}
-
-.stat-label {
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
-/* Сетка курсов */
-.my-courses-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 2rem;
-}
-
-@media (max-width: 768px) {
-    .my-courses-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Карточка курса */
-.course-card {
-    background: white;
-    border-radius: 1rem;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: all 250ms ease;
-    display: flex;
-    flex-direction: column;
-}
-
-.course-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    border-color: #4f46e5;
-}
-
-.course-card-header {
-    padding: 1.5rem;
-    background: linear-gradient(135deg, #f9fafb, #f3f4f6);
-    border-bottom: 1px solid #e5e7eb;
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-}
-
-.course-badge {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #4f46e5, #818cf8);
-    border-radius: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.course-badge i {
-    color: white;
-    font-size: 1.25rem;
-}
-
-.course-title-section {
-    flex: 1;
-}
-
-.course-title {
-    font-family: "Poppins", sans-serif;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 0.75rem;
-    line-height: 1.4;
-}
-
-.course-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-}
-
-.course-meta-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
-    color: #6b7280;
-    padding: 0.25rem 0.5rem;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.375rem;
-}
-
-.course-meta-item i {
-    font-size: 0.75rem;
-    color: #4f46e5;
-}
-
-.course-card-body {
-    padding: 1.5rem;
-    flex: 1;
-}
-
-.course-description {
-    color: #6b7280;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    margin-bottom: 1.5rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.course-progress {
-    margin-top: 1rem;
-}
-
-.progress-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
-}
-
-.progress-label {
-    color: #4b5563;
-}
-
-.progress-percentage {
-    font-weight: 600;
-    color: #4f46e5;
-}
-
-.progress-bar {
-    height: 6px;
-    background: #e5e7eb;
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(135deg, #4f46e5, #818cf8);
-    width: 0%;
-    border-radius: 3px;
-    transition: width 0.3s ease;
-}
-
-.course-card-footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-}
-
-.btn-continue-course {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    background: linear-gradient(135deg, #10b981, #34d399);
-    color: white;
-    border-radius: 0.5rem;
-    text-decoration: none;
-    font-weight: 500;
-    flex: 1;
-    transition: all 150ms ease;
-}
-
-.btn-continue-course:hover {
-    background: linear-gradient(135deg, #0d9668, #10b981);
-    transform: translateY(-1px);
-}
-
-.btn-continue-course i {
-    font-size: 1rem;
-}
-
-.course-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.btn-action {
-    width: 36px;
-    height: 36px;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.375rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #6b7280;
-    transition: all 150ms ease;
-}
-
-.btn-action:hover {
-    background: #f3f4f6;
-    color: #4f46e5;
-    border-color: #4f46e5;
-}
-
-/* Пустое состояние */
-.empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.empty-state-icon {
-    font-size: 4rem;
-    color: #e5e7eb;
-    margin-bottom: 2rem;
-}
-
-.empty-state-title {
-    font-family: "Poppins", sans-serif;
-    font-size: 1.75rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 1rem;
-}
-
-.empty-state-description {
-    color: #6b7280;
-    line-height: 1.6;
-    margin-bottom: 2rem;
-}
-
-.btn-empty {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 2rem;
-    background: linear-gradient(135deg, #4f46e5, #818cf8);
-    color: white;
-    border-radius: 0.75rem;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 250ms ease;
-}
-
-.btn-empty:hover {
-    background: linear-gradient(135deg, #4338ca, #4f46e5);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
-}
-
-.btn-empty i {
-    font-size: 1.125rem;
-}
-
-/* Анимации */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.course-card {
-    animation: fadeInUp 0.5s ease-out;
-}
-
-.course-card:nth-child(1) { animation-delay: 0.1s; }
-.course-card:nth-child(2) { animation-delay: 0.2s; }
-.course-card:nth-child(3) { animation-delay: 0.3s; }
-.course-card:nth-child(4) { animation-delay: 0.4s; }
-.course-card:nth-child(5) { animation-delay: 0.5s; }
-</style>
-
-{% block domready %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Имитация прогресса для демонстрации
-        const progressBars = document.querySelectorAll('.progress-fill');
-        progressBars.forEach(bar => {
-            const randomProgress = Math.floor(Math.random() * 100);
-            bar.style.width = `${randomProgress}%`;
-            
-            const percentageElement = bar.closest('.course-progress').querySelector('.progress-percentage');
-            if (percentageElement) {
-                percentageElement.textContent = `${randomProgress}%`;
-            }
-        });
-        
-        // Обработка избранного
-        const favoriteButtons = document.querySelectorAll('.btn-favorite');
-        favoriteButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const icon = this.querySelector('i');
-                if (icon.classList.contains('far')) {
-                    icon.className = 'fas fa-heart';
-                    this.style.color = '#ef4444';
-                } else {
-                    icon.className = 'far fa-heart';
-                    this.style.color = '';
-                }
-            });
-        });
-        
-        // Анимация при наведении
-        const cards = document.querySelectorAll('.course-card');
-        cards.forEach(card => {
-            card.addEventListener('mouseenter', () => {
-                card.style.transform = 'translateY(-4px)';
-            });
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = 'translateY(0)';
-            });
-        });
-    });
-</script>
-{% endblock %}
 {% endblock %}

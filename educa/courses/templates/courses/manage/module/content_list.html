@@ -1,270 +1,498 @@
 {% extends "base.html" %}
 {% load course %}
-{% load static %}
 
 {% block title %}
-  Module {{ module.order|add:1 }}: {{ module.title }} | Educa
+  Module {{ module.order|add:1 }}: {{ module.title }} - Educa
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .module-management {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 30px;
+    }
+    
+    .module-sidebar {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        padding: 25px;
+        border: 1px solid var(--gray-200);
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    
+    .module-content-area {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        padding: 25px;
+        border: 1px solid var(--gray-200);
+    }
+    
+    .module-item-sidebar {
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: var(--border-radius-sm);
+        border: 2px solid transparent;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+    
+    .module-item-sidebar:hover {
+        background: var(--gray-100);
+        border-color: var(--gray-300);
+    }
+    
+    .module-item-sidebar.selected {
+        background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(67, 97, 238, 0.05));
+        border-color: var(--primary-color);
+    }
+    
+    .module-order {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        font-size: 14px;
+        font-weight: 600;
+        margin-right: 10px;
+    }
+    
+    .content-item {
+        padding: 20px;
+        margin-bottom: 15px;
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--gray-200);
+        background: white;
+        transition: var(--transition);
+        cursor: move;
+    }
+    
+    .content-item:hover {
+        border-color: var(--primary-color);
+        box-shadow: var(--shadow-sm);
+        transform: translateY(-2px);
+    }
+    
+    .content-type-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-left: 10px;
+    }
+    
+    .badge-text { background: rgba(67, 97, 238, 0.15); color: var(--primary-color); }
+    .badge-image { background: rgba(114, 9, 183, 0.15); color: #7209b7; }
+    .badge-video { background: rgba(247, 37, 133, 0.15); color: #f72585; }
+    .badge-file { background: rgba(76, 201, 240, 0.15); color: #4cc9f0; }
+    
+    .content-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        opacity: 0.7;
+        transition: var(--transition);
+    }
+    
+    .content-item:hover .content-actions {
+        opacity: 1;
+    }
+    
+    .add-content-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 25px;
+    }
+    
+    .content-type-card {
+        text-align: center;
+        padding: 25px 20px;
+        border-radius: var(--border-radius);
+        border: 2px solid var(--gray-200);
+        background: white;
+        transition: var(--transition);
+        text-decoration: none;
+        color: var(--gray-700);
+    }
+    
+    .content-type-card:hover {
+        border-color: var(--primary-color);
+        background: linear-gradient(135deg, rgba(67, 97, 238, 0.05), white);
+        transform: translateY(-5px);
+        color: var(--primary-color);
+    }
+    
+    .content-type-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-size: 24px;
+        color: white;
+    }
+    
+    .icon-text { background: linear-gradient(135deg, #4361ee, #3a56d4); }
+    .icon-image { background: linear-gradient(135deg, #7209b7, #5a08a3); }
+    .icon-video { background: linear-gradient(135deg, #f72585, #e11575); }
+    .icon-file { background: linear-gradient(135deg, #4cc9f0, #3ab8dd); }
+    
+    .empty-content {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--gray-500);
+    }
+    
+    .empty-content-icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .drag-handle {
+        cursor: move;
+        color: var(--gray-400);
+        margin-right: 10px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 {% with course=module.course %}
-<div class="courses-container">
-  <div class="courses-header">
-    <div class="header-content">
-      <h1 class="page-title">
-        <i class="fas fa-book"></i>
-        {{ course.title }}
-      </h1>
-      <p class="page-subtitle">Manage course content and module structure</p>
-    </div>
-    <div class="header-actions">
-      <a href="{% url 'manage_course_list' %}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i>
-        <span>Back to Courses</span>
-      </a>
-    </div>
-  </div>
-
-  <div class="module-management">
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <h3>
-          <i class="fas fa-layer-group"></i>
-          Course Modules
-        </h3>
-        <p class="sidebar-subtitle">Select a module to manage its content</p>
-      </div>
-      
-      <ul class="module-list" id="modules">
-        {% for m in course.modules.all %}
-        <li class="module-item {% if m == module %}active{% endif %}" data-id="{{ m.id }}">
-          <div class="module-item-content">
-            <div class="module-info">
-              <a href="{% url 'module_content_list' m.id %}" class="module-link">
-                <div class="module-order">
-                  <span class="order-badge order">{{ m.order|add:1 }}</span>                </div>
-                <div class="module-details">
-                  <h4 class="module-title">{{ m.title|default:"Untitled Module" }}</h4>
-                  <div class="module-meta">
-                    <span class="meta-item">
-                      <i class="fas fa-file-alt"></i>
-                      {{ m.contents.count }} content{{ m.contents.count|pluralize }}
-                    </span>
-                  </div>
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h1 class="mb-2">
+                <i class="fas fa-layer-group text-primary me-2"></i>
+                Course Content Management
+            </h1>
+            <div class="d-flex align-items-center gap-3">
+                <a href="{% url 'manage_course_list' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Courses
+                </a>
+                <div class="text-muted">
+                    <i class="fas fa-book me-1"></i>{{ course.title }}
                 </div>
-              </a>
             </div>
-          </div>
-        </li>
-        {% empty %}
-        <li class="empty-modules">
-          <div class="empty-state-small">
-            <i class="fas fa-inbox"></i>
-            <p>No modules yet</p>
-          </div>
-        </li>
-        {% endfor %}
-      </ul>
-      
-      <div class="sidebar-actions">
-        <a href="{% url 'course_module_update' course.id %}" class="btn btn-secondary btn-sm">
-          <i class="fas fa-edit"></i>
-          <span>Edit Modules</span>
+        </div>
+        <a href="{% url 'course_module_update' course.id %}" class="btn btn-primary">
+            <i class="fas fa-edit me-2"></i>Edit Modules
         </a>
-      </div>
     </div>
+</div>
 
-    <div class="content-area">
-      <div class="module-header-card">
-        <div class="module-header-content">
-          <div class="module-badge">
-            <span class="badge-number">{{ module.order|add:1 }}</span>
-          </div>
-          <div class="module-header-info">
-            <h2>{{ module.title|default:"Untitled Module" }}</h2>
-            <p class="module-description">{{ module.description|default:"No description provided" }}</p>
-          </div>
-        </div>
-        <div class="module-header-stats">
-          <div class="stat-item">
-            <i class="fas fa-file-alt"></i>
-            <span>{{ module.contents.count }} content{{ module.contents.count|pluralize }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="contents-card">
-        <div class="contents-header">
-          <h3>
-            <i class="fas fa-file-alt"></i>
-            Module Contents
-          </h3>
-          <p class="contents-subtitle">Manage your module contents</p>
+<div class="module-management">
+    <!-- Sidebar with modules -->
+    <aside class="module-sidebar">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="h5 mb-0">
+                <i class="fas fa-list-ol me-2"></i>Course Modules
+            </h3>
+            <span class="badge bg-primary">{{ course.modules.count }}</span>
         </div>
         
-        <div class="contents-list" id="module-contents">
-          {% for content in module.contents.all %}
-          <div class="content-item" data-id="{{ content.id }}">
-            <div class="content-item-header">
-              <div class="content-drag-handle">
-                <i class="fas fa-grip-vertical"></i>
-              </div>
-              <div class="content-type-icon">
-                {% with item=content.item %}
-                  {% if item|model_name == "text" %}
-                    <i class="fas fa-font"></i>
-                  {% elif item|model_name == "image" %}
-                    <i class="fas fa-image"></i>
-                  {% elif item|model_name == "video" %}
-                    <i class="fas fa-video"></i>
-                  {% elif item|model_name == "file" %}
-                    <i class="fas fa-file"></i>
-                  {% else %}
-                    <i class="fas fa-file-alt"></i>
-                  {% endif %}
-                {% endwith %}
-              </div>
-              <div class="content-info">
-                <h4 class="content-title">
-                  {% with item=content.item %}
-                    {{ item.title|default:item|model_name|title }}
-                  {% endwith %}
-                </h4>
-                <p class="content-type">
-                  {% with item=content.item %}
-                    {{ item|model_name|title }} content
-                  {% endwith %}
-                </p>
-              </div>
+        <p class="text-muted small mb-3">Select a module to manage its content</p>
+        
+        <div id="modules">
+            {% for m in course.modules.all %}
+            <div class="module-item-sidebar {% if m == module %}selected{% endif %}" 
+                 data-id="{{ m.id }}">
+                <a href="{% url 'module_content_list' m.id %}" style="color: inherit; text-decoration: none;">
+                    <div class="d-flex align-items-start">
+                        <div class="module-order">{{ m.order|add:1 }}</div>
+                        <div>
+                            <div class="fw-semibold mb-1">{{ m.title|default:"Untitled Module" }}</div>
+                            {% if m.description %}
+                            <p class="text-muted small mb-0">{{ m.description|truncatechars:60 }}</p>
+                            {% endif %}
+                            <div class="mt-2">
+                                <span class="badge bg-light text-dark">
+                                    <i class="fas fa-file-alt me-1"></i>
+                                    {{ m.contents.count }} content{{ m.contents.count|pluralize }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
             </div>
-            
-            <div class="content-actions">
-              {% with item=content.item %}
-              <a href="{% url 'module_content_update' module.id item|model_name item.id %}" class="btn-action btn-edit" title="Edit">
-                <i class="fas fa-edit"></i>
-                <span>Edit</span>
-              </a>
-              <form action="{% url 'module_content_delete' content.id %}" method="post" class="delete-form-inline">
-                {% csrf_token %}
-                <button type="submit" class="btn-action btn-delete" title="Delete">
-                  <i class="fas fa-trash-alt"></i>
-                  <span>Delete</span>
-                </button>
-              </form>
-              {% endwith %}
+            {% empty %}
+            <div class="text-center py-4 text-muted">
+                <i class="fas fa-inbox fa-2x mb-3"></i>
+                <p>No modules yet</p>
+                <a href="{% url 'course_module_update' course.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-plus me-1"></i>Create Modules
+                </a>
             </div>
-          </div>
-          {% empty %}
-          <div class="empty-contents">
-            <div class="empty-state-medium">
-              <i class="fas fa-file-alt"></i>
-              <h4>No contents yet</h4>
-              <p>Add content to this module to get started</p>
+            {% endfor %}
+        </div>
+        
+        <div class="mt-4 pt-3 border-top">
+            <a href="{% url 'course_module_update' course.id %}" class="btn btn-outline-primary w-100">
+                <i class="fas fa-edit me-2"></i>Edit Modules
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main content area -->
+    <main class="module-content-area">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="h4 mb-1">
+                    <span class="module-order">{{ module.order|add:1 }}</span>
+                    {{ module.title|default:"Untitled Module" }}
+                </h2>
+                {% if module.description %}
+                <p class="text-muted mb-0">{{ module.description }}</p>
+                {% endif %}
             </div>
-          </div>
-          {% endfor %}
+            <div class="text-end">
+                <div class="badge bg-light text-dark">
+                    <i class="fas fa-file-alt me-1"></i>
+                    {{ module.contents.count }} item{{ module.contents.count|pluralize }}
+                </div>
+            </div>
         </div>
 
-        <div class="add-content-section">
-          <h3>
-            <i class="fas fa-plus-circle"></i>
-            Add New Content
-          </h3>
-          <p class="add-content-subtitle">Select content type to add</p>
-          
-          <div class="content-type-grid">
-            <a href="{% url 'module_content_create' module.id 'text' %}" class="content-type-card">
-              <div class="content-type-icon-large">
-                <i class="fas fa-font"></i>
-              </div>
-              <h4>Text</h4>
-              <p>Add formatted text content</p>
-            </a>
-            
-            <a href="{% url 'module_content_create' module.id 'image' %}" class="content-type-card">
-              <div class="content-type-icon-large">
-                <i class="fas fa-image"></i>
-              </div>
-              <h4>Image</h4>
-              <p>Upload images with descriptions</p>
-            </a>
-            
-            <a href="{% url 'module_content_create' module.id 'video' %}" class="content-type-card">
-              <div class="content-type-icon-large">
-                <i class="fas fa-video"></i>
-              </div>
-              <h4>Video</h4>
-              <p>Add video content or links</p>
-            </a>
-            
-            <a href="{% url 'module_content_create' module.id 'file' %}" class="content-type-card">
-              <div class="content-type-icon-large">
-                <i class="fas fa-file"></i>
-              </div>
-              <h4>File</h4>
-              <p>Upload documents and files</p>
-            </a>
-          </div>
+        <h3 class="h5 mb-3">
+            <i class="fas fa-folder-open me-2"></i>Module Contents
+        </h3>
+        <p class="text-muted small mb-4">Drag and drop to reorder contents</p>
+
+        <div id="module-contents">
+            {% for content in module.contents.all %}
+            <div class="content-item" data-id="{{ content.id }}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div style="flex-grow: 1;">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-arrows-alt drag-handle"></i>
+                            {% with item=content.item %}
+                            <span class="fw-semibold">{{ item.title|default:"Untitled Content" }}</span>
+                            <span class="content-type-badge 
+                                {% if item|model_name == 'text' %}badge-text
+                                {% elif item|model_name == 'image' %}badge-image
+                                {% elif item|model_name == 'video' %}badge-video
+                                {% else %}badge-file{% endif %}">
+                                <i class="fas fa-{% if item|model_name == 'text' %}file-alt
+                                    {% elif item|model_name == 'image' %}image
+                                    {% elif item|model_name == 'video' %}video
+                                    {% else %}file{% endif %} me-1"></i>
+                                {{ item|model_name|title }}
+                            </span>
+                            {% endwith %}
+                        </div>
+                        
+                        {% with item=content.item %}
+                        {% if item|model_name == 'text' %}
+                        <div class="text-muted small">
+                            {{ item.content|striptags|truncatechars:100 }}
+                        </div>
+                        {% elif item|model_name == 'image' %}
+                        <div class="text-muted small">
+                            <i class="fas fa-image me-1"></i>
+                            Image file
+                        </div>
+                        {% elif item|model_name == 'video' %}
+                        <div class="text-muted small">
+                            <i class="fas fa-video me-1"></i>
+                            Video content
+                        </div>
+                        {% else %}
+                        <div class="text-muted small">
+                            <i class="fas fa-file me-1"></i>
+                            File attachment
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                        
+                        <div class="content-actions">
+                            {% with item=content.item %}
+                            <a href="{% url 'module_content_update' module.id item|model_name item.id %}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                            <form action="{% url 'module_content_delete' content.id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                        onclick="return confirm('Delete this content?')">
+                                    <i class="fas fa-trash-alt me-1"></i>Delete
+                                </button>
+                            </form>
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-content">
+                <div class="empty-content-icon">
+                    <i class="fas fa-inbox"></i>
+                </div>
+                <h4 class="h5 mb-2">No contents yet</h4>
+                <p class="text-muted mb-4">Start by adding content to this module</p>
+            </div>
+            {% endfor %}
         </div>
-      </div>
-    </div>
-  </div>
+
+        {% if module.contents.count > 0 %}
+        <div class="alert alert-info mt-4" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Tip:</strong> Drag and drop content items to reorder them. Changes are saved automatically.
+        </div>
+        {% endif %}
+
+        <div class="mt-5 pt-4 border-top">
+            <h3 class="h5 mb-4">
+                <i class="fas fa-plus-circle me-2 text-success"></i>Add New Content
+            </h3>
+            <p class="text-muted mb-4">Select content type to add</p>
+            
+            <div class="add-content-grid">
+                <a href="{% url 'module_content_create' module.id 'text' %}" class="content-type-card">
+                    <div class="content-type-icon icon-text">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h5 class="h6 mb-2">Text</h5>
+                    <p class="text-muted small mb-0">Add formatted text content with rich editor</p>
+                </a>
+                
+                <a href="{% url 'module_content_create' module.id 'image' %}" class="content-type-card">
+                    <div class="content-type-icon icon-image">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <h5 class="h6 mb-2">Image</h5>
+                    <p class="text-muted small mb-0">Upload images with descriptions and alt text</p>
+                </a>
+                
+                <a href="{% url 'module_content_create' module.id 'video' %}" class="content-type-card">
+                    <div class="content-type-icon icon-video">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <h5 class="h6 mb-2">Video</h5>
+                    <p class="text-muted small mb-0">Add video content or embed external links</p>
+                </a>
+                
+                <a href="{% url 'module_content_create' module.id 'file' %}" class="content-type-card">
+                    <div class="content-type-icon icon-file">
+                        <i class="fas fa-file"></i>
+                    </div>
+                    <h5 class="h6 mb-2">File</h5>
+                    <p class="text-muted small mb-0">Upload documents, PDFs and other files</p>
+                </a>
+            </div>
+        </div>
+    </main>
 </div>
 {% endwith %}
 {% endblock %}
 
 {% block include_js %}
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5sortable/0.13.3/html5sortable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5sortable/0.13.3/html5sortable.min.js"></script>
 {% endblock %}
 
 {% block domready %}
-  var options = {
-      method: 'POST',
-      mode: 'same-origin'
-  }
+var options = {
+    method: 'POST',
+    mode: 'same-origin',
+    headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/json'
+    }
+}
 
-  const moduleOrderUrl = '{% url "module_order" %}';
+const moduleOrderUrl = '{% url "module_order" %}';
 
-  sortable('#modules', {
+// Make module sidebar items sortable
+sortable('#modules', {
     forcePlaceholderSize: true,
-    placeholderClass: 'placeholder'
-  })[0].addEventListener('sortupdate', function(e) {
-
+    placeholderClass: 'placeholder',
+    handle: '.module-order'
+})[0].addEventListener('sortupdate', function(e) {
     modulesOrder = {};
-    var modules = document.querySelectorAll('#modules li');
+    var modules = document.querySelectorAll('#modules .module-item-sidebar');
     modules.forEach(function (module, index) {
-      // update module index
-      modulesOrder[module.dataset.id] = index;
-      // update index in HTML element
-      module.querySelector('.order').innerHTML = index + 1;
+        modulesOrder[module.dataset.id] = index;
+        module.querySelector('.module-order').innerHTML = index + 1;
     });
-
-    // add new order to the HTTP request options
+    
     options['body'] = JSON.stringify(modulesOrder);
-
-    // send HTTP request
     fetch(moduleOrderUrl, options)
-  });
-
-  const contentOrderUrl = '{% url "content_order" %}';
-
-  sortable('#module-contents', {
-    forcePlaceholderSize: true,
-    placeholderClass: 'placeholder'
-  })[0].addEventListener('sortupdate', function(e) {
-
-    contentOrder = {};
-    var contents = document.querySelectorAll('#module-contents div');
-    contents.forEach(function (content, index) {
-      // update content index
-      contentOrder[content.dataset.id] = index;
+    .then(response => {
+        if (response.ok) {
+            showNotification('Modules reordered successfully!', 'success');
+        }
     });
+});
 
-    // add new order to the HTTP request options
+const contentOrderUrl = '{% url "content_order" %}';
+
+// Make content items sortable
+sortable('#module-contents', {
+    forcePlaceholderSize: true,
+    placeholderClass: 'placeholder',
+    handle: '.drag-handle'
+})[0].addEventListener('sortupdate', function(e) {
+    contentOrder = {};
+    var contents = document.querySelectorAll('#module-contents .content-item');
+    contents.forEach(function (content, index) {
+        contentOrder[content.dataset.id] = index;
+    });
+    
     options['body'] = JSON.stringify(contentOrder);
-
-    // send HTTP request
     fetch(contentOrderUrl, options)
-  });
+    .then(response => {
+        if (response.ok) {
+            showNotification('Content reordered successfully!', 'success');
+        }
+    });
+});
 
+// Function to show notifications
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-dismissible fade show`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        min-width: 300px;
+        box-shadow: var(--shadow-lg);
+    `;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Add hover effects to module items
+document.querySelectorAll('.module-item-sidebar').forEach(item => {
+    item.addEventListener('mouseenter', function() {
+        if (!this.classList.contains('selected')) {
+            this.style.transform = 'translateX(5px)';
+        }
+    });
+    
+    item.addEventListener('mouseleave', function() {
+        this.style.transform = '';
+    });
+});
 {% endblock %}

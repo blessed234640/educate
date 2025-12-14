@@ -1,119 +1,728 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}
   {% if object %}
-    Edit course "{{ object.title }}" | Educa
+    Edit "{{ object.title }}" - Educa
   {% else %}
-    Create a new course | Educa
+    Create New Course - Educa
   {% endif %}
 {% endblock %}
 
-{% block content %}
-<div class="courses-container">
-  <div class="courses-header">
-    <div class="header-content">
-      <h1 class="page-title">
-        <i class="fas fa-edit"></i>
-        {% if object %}
-          Edit course "{{ object.title }}"
-        {% else %}
-          Create a new course
-        {% endif %}
-      </h1>
-      <p class="page-subtitle">
-        {% if object %}
-          Update your course information and settings
-        {% else %}
-          Fill in the details to create a new course
-        {% endif %}
-      </p>
-    </div>
-  </div>
-
-  <div class="auth-card module">
-    <div class="module-header">
-      <h2>
-        <i class="fas fa-info-circle"></i>
-        Course Information
-      </h2>
-      <p class="form-subtitle">Provide the details for your course</p>
-    </div>
+{% block extra_css %}
+<link href="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.css" rel="stylesheet">
+<style>
+    .course-form-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
     
-    <form method="post" class="course-form">
-      {% csrf_token %}
-      
-      <div class="form-group">
-        {% for field in form %}
-        <div class="form-field">
-          <label for="{{ field.id_for_label }}" class="form-label">
-            <i class="fas 
-              {% if field.name == 'title' %}fa-heading
-              {% elif field.name == 'subject' %}fa-book
-              {% elif field.name == 'slug' %}fa-link
-              {% elif field.name == 'overview' %}fa-align-left
-              {% else %}fa-edit{% endif %}">
-            </i>
-            {{ field.label }}
-          </label>
-          
-          {{ field }}
-          
-          {% if field.help_text %}
-          <div class="form-help">{{ field.help_text }}</div>
-          {% endif %}
-          
-          {% if field.errors %}
-          <div class="form-errors">
-            {% for error in field.errors %}
-            <span class="error-message">
-              <i class="fas fa-exclamation-circle"></i> {{ error }}
-            </span>
-            {% endfor %}
-          </div>
-          {% endif %}
-        </div>
-        {% endfor %}
-      </div>
-      
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary btn-submit">
-          <i class="fas fa-save"></i>
-          <span>Save Course</span>
-        </button>
-        
-        <a href="{% url 'manage_course_list' %}" class="btn btn-cancel">
-          <i class="fas fa-times"></i>
-          <span>Cancel</span>
-        </a>
-      </div>
-    </form>
-  </div>
-</div>
+    .form-section-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        padding: 30px;
+        margin-bottom: 30px;
+        border: 1px solid var(--gray-200);
+    }
+    
+    .form-step-indicator {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 40px;
+        position: relative;
+    }
+    
+    .form-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+        margin: 0 20px;
+    }
+    
+    .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--gray-200);
+        color: var(--gray-600);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-bottom: 10px;
+        transition: var(--transition);
+    }
+    
+    .step-number.active {
+        background: var(--primary-color);
+        color: white;
+        box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+    }
+    
+    .step-label {
+        font-size: 14px;
+        color: var(--gray-600);
+        font-weight: 500;
+    }
+    
+    .step-label.active {
+        color: var(--primary-color);
+    }
+    
+    .form-progress-line {
+        position: absolute;
+        top: 20px;
+        left: 50px;
+        right: 50px;
+        height: 2px;
+        background: var(--gray-300);
+        z-index: 1;
+    }
+    
+    .form-navigation {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid var(--gray-300);
+    }
+    
+    .course-preview-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        padding: 25px;
+        border: 1px solid var(--gray-200);
+        margin-bottom: 20px;
+    }
+    
+    .preview-title {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: var(--gray-900);
+    }
+    
+    .preview-overview {
+        line-height: 1.6;
+        color: var(--gray-700);
+    }
+    
+    .preview-overview ul, .preview-overview ol {
+        padding-left: 20px;
+        margin-bottom: 15px;
+    }
+    
+    .preview-overview li {
+        margin-bottom: 5px;
+    }
+    
+    /* Стили для CKEditor */
+    .cke_chrome {
+        border-radius: var(--border-radius-sm) !important;
+        border: 2px solid var(--gray-300) !important;
+        box-shadow: none !important;
+        transition: var(--transition) !important;
+    }
+    
+    .cke_focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15) !important;
+    }
+    
+    /* Стили для обычного textarea как fallback */
+    textarea.form-control {
+        min-height: 200px;
+        font-family: monospace;
+    }
+    
+    /* Fallback для редактора */
+    .editor-fallback {
+        display: none;
+    }
+</style>
 {% endblock %}
 
-{% block domready %}
+{% block content %}
+<div class="container">
+    <div class="page-header mb-4">
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white;">
+                {% if object %}
+                <i class="fas fa-edit"></i>
+                {% else %}
+                <i class="fas fa-plus-circle"></i>
+                {% endif %}
+            </div>
+            <div>
+                <h1 class="mb-1">
+                    {% if object %}
+                        Edit Course
+                    {% else %}
+                        Create New Course
+                    {% endif %}
+                </h1>
+                <p class="text-muted">
+                    {% if object %}
+                        Update your course details
+                    {% else %}
+                        Create and publish your new course
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-step-indicator">
+        <div class="form-progress-line"></div>
+        
+        <div class="form-step">
+            <div class="step-number active" id="step1Number">1</div>
+            <div class="step-label active" id="step1Label">Basic Info</div>
+        </div>
+        
+        <div class="form-step">
+            <div class="step-number" id="step2Number">2</div>
+            <div class="step-label" id="step2Label">Overview</div>
+        </div>
+        
+        <div class="form-step">
+            <div class="step-number" id="step3Number">3</div>
+            <div class="step-label" id="step3Label">Publish</div>
+        </div>
+    </div>
+
+    <div class="course-form-container">
+        <form method="post" id="courseForm" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Скрытые поля для передачи данных между секциями -->
+            <input type="hidden" id="current_section" name="current_section" value="1">
+            
+            <div class="form-section-card" id="section1">
+                <h3 class="h4 mb-4">
+                    <i class="fas fa-info-circle text-primary me-2"></i>
+                    Basic Information
+                </h3>
+                
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">
+                            <i class="fas fa-heading me-1"></i>Course Title *
+                        </label>
+                        <input type="text" 
+                               name="{{ form.title.name }}" 
+                               id="{{ form.title.id_for_label }}" 
+                               class="form-control" 
+                               value="{{ form.title.value|default:'' }}"
+                               maxlength="200"
+                               placeholder="Enter course title"
+                               required>
+                        {% if form.title.errors %}
+                        <div class="text-danger small mt-2">
+                            {{ form.title.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text text-muted">
+                            Choose a clear and engaging title (max 200 characters)
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <label for="{{ form.subject.id_for_label }}" class="form-label">
+                            <i class="fas fa-tag me-1"></i>Subject *
+                        </label>
+                        <select name="{{ form.subject.name }}" 
+                                id="{{ form.subject.id_for_label }}" 
+                                class="form-select" 
+                                required>
+                            <option value="">---------</option>
+                            {% for subject in form.subject.field.queryset %}
+                                <option value="{{ subject.id }}" 
+                                    {% if form.subject.value|stringformat:"s" == subject.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ subject.title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.subject.errors %}
+                        <div class="text-danger small mt-2">
+                            {{ form.subject.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <label for="{{ form.slug.id_for_label }}" class="form-label">
+                            <i class="fas fa-link me-1"></i>URL Slug
+                        </label>
+                        <input type="text" 
+                               name="{{ form.slug.name }}" 
+                               id="{{ form.slug.id_for_label }}" 
+                               class="form-control" 
+                               value="{{ form.slug.value|default:'' }}"
+                               placeholder="Auto-generated from title">
+                        {% if form.slug.errors %}
+                        <div class="text-danger small mt-2">
+                            {{ form.slug.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text text-muted">
+                            Leave empty to auto-generate from title
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-navigation">
+                    <button type="button" class="btn btn-secondary" disabled>
+                        <i class="fas fa-arrow-left me-2"></i>Previous
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="nextSection()">
+                        Next <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-section-card" id="section2" style="display: none;">
+                <h3 class="h4 mb-4">
+                    <i class="fas fa-align-left text-primary me-2"></i>
+                    Course Overview
+                </h3>
+                
+                <div class="mb-4">
+                    <label for="{{ form.overview.id_for_label }}" class="form-label">
+                        <i class="fas fa-file-alt me-1"></i>Course Description *
+                    </label>
+                    <textarea name="{{ form.overview.name }}" 
+                              id="{{ form.overview.id_for_label }}" 
+                              class="form-control" 
+                              rows="10"
+                              placeholder="Describe what students will learn in this course..."
+                              required>{{ form.overview.value|default:'' }}</textarea>
+                    {% if form.overview.errors %}
+                    <div class="text-danger small mt-2">
+                        {{ form.overview.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-text text-muted">
+                        Describe what students will learn in this course.
+                    </div>
+                    
+                    <!-- Fallback сообщение если CKEditor не загрузится -->
+                    <div id="editorFallback" class="editor-fallback alert alert-warning mt-2">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Rich text editor not available. You can use basic HTML tags like &lt;strong&gt;, &lt;em&gt;, &lt;ul&gt;, &lt;li&gt;, etc.
+                    </div>
+                </div>
+                
+                <div class="course-preview-card">
+                    <h4 class="h5 mb-3">
+                        <i class="fas fa-eye me-2 text-muted"></i>Preview
+                    </h4>
+                    <div class="preview-overview" id="overviewPreview">
+                        {{ form.overview.value|default:"Your description will appear here..."|safe }}
+                    </div>
+                </div>
+                
+                <div class="form-navigation">
+                    <button type="button" class="btn btn-secondary" onclick="prevSection()">
+                        <i class="fas fa-arrow-left me-2"></i>Previous
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="nextSection()">
+                        Next <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-section-card" id="section3" style="display: none;">
+                <h3 class="h4 mb-4">
+                    <i class="fas fa-rocket text-primary me-2"></i>
+                    Ready to Publish
+                </h3>
+                
+                <div class="alert alert-info" role="alert">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-lightbulb mt-1 me-3"></i>
+                        <div>
+                            <h5 class="alert-heading h6 mb-2">Review Your Course</h5>
+                            <p class="mb-0">Make sure all information is correct before publishing. You can always edit it later.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="course-preview-card">
+                    <h4 class="preview-title" id="previewTitle">
+                        {{ form.title.value|default:"Course Title" }}
+                    </h4>
+                    
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="badge bg-primary">
+                            <i class="fas fa-tag me-1"></i>
+                            <span id="previewSubject">
+                                {% if form.subject.value %}
+                                    {% for subject in form.subject.field.queryset %}
+                                        {% if subject.id|stringformat:"s" == form.subject.value|stringformat:"s" %}
+                                            {{ subject.title }}
+                                        {% endif %}
+                                    {% empty %}
+                                        Subject ID: {{ form.subject.value }}
+                                    {% endfor %}
+                                {% else %}
+                                    Subject
+                                {% endif %}
+                            </span>
+                        </span>
+                        <span class="text-muted">
+                            <i class="fas fa-calendar me-1"></i>
+                            {% now "M d, Y" %}
+                        </span>
+                    </div>
+                    
+                    <div class="preview-overview" id="finalPreview">
+                        {{ form.overview.value|default:"Course description will appear here..."|safe }}
+                    </div>
+                </div>
+                
+                <div class="form-check mb-4">
+                    <input class="form-check-input" type="checkbox" id="confirmInfo" required>
+                    <label class="form-check-label" for="confirmInfo">
+                        I confirm that all information is correct and I have the rights to publish this content
+                    </label>
+                </div>
+                
+                <div class="form-navigation">
+                    <button type="button" class="btn btn-secondary" onclick="prevSection()">
+                        <i class="fas fa-arrow-left me-2"></i>Previous
+                    </button>
+                    <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
+                        <i class="fas fa-check-circle me-2"></i>
+                        {% if object %}
+                            Update Course
+                        {% else %}
+                            Create Course
+                        {% endif %}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Add classes to form inputs
-  const inputs = document.querySelectorAll('.course-form input, .course-form textarea, .course-form select');
-  inputs.forEach(input => {
-    if (input.tagName.toLowerCase() !== 'input' || input.type !== 'submit') {
-      input.classList.add('form-control');
+    let currentSection = 1;
+    let ckeditorInitialized = false;
+    
+    // Инициализация CKEditor с улучшенной обработкой ошибок
+    function initCKEditor() {
+        try {
+            const overviewField = document.getElementById('{{ form.overview.id_for_label }}');
+            if (!overviewField) {
+                console.error('CKEditor: Textarea not found');
+                document.getElementById('editorFallback').style.display = 'block';
+                return;
+            }
+            
+            // Проверяем, загружен ли CKEDITOR
+            if (typeof CKEDITOR === 'undefined') {
+                console.error('CKEditor: Library not loaded');
+                document.getElementById('editorFallback').style.display = 'block';
+                return;
+            }
+            
+            CKEDITOR.replace('{{ form.overview.id_for_label }}', {
+                height: 200,
+                toolbar: [
+                    ['Bold', 'Italic', 'Underline', 'Strike'],
+                    ['NumberedList', 'BulletedList'],
+                    ['Link', 'Unlink'],
+                    ['RemoveFormat', 'Source']
+                ],
+                // Предотвращаем автоматические теги
+                autoParagraph: false,
+                // Более строгая очистка
+                allowedContent: 'p br strong em u ol ul li a[href]',
+                // Убираем лишние теги
+                fillEmptyBlocks: false,
+                // Базовые настройки
+                language: 'en',
+                removePlugins: 'elementspath',
+                resize_enabled: true
+            });
+            
+            // Ждем полной загрузки редактора
+            CKEDITOR.instances['{{ form.overview.id_for_label }}'].on('instanceReady', function() {
+                ckeditorInitialized = true;
+                console.log('CKEditor initialized successfully');
+                
+                // Обновление превью при изменении
+                this.on('change', function() {
+                    updatePreview();
+                });
+                
+                // Инициализируем превью
+                updatePreview();
+            });
+            
+        } catch (error) {
+            console.error('CKEditor initialization error:', error);
+            document.getElementById('editorFallback').style.display = 'block';
+        }
     }
-  });
-  
-  // Add focus effects
-  inputs.forEach(input => {
-    if (input.tagName.toLowerCase() !== 'input' || input.type !== 'submit') {
-      input.addEventListener('focus', function() {
-        this.parentElement.classList.add('focused');
-      });
-      
-      input.addEventListener('blur', function() {
-        this.parentElement.classList.remove('focused');
-      });
+    
+    // Функция обновления превью
+    function updatePreview() {
+        try {
+            let content = '';
+            if (ckeditorInitialized && CKEDITOR.instances['{{ form.overview.id_for_label }}']) {
+                content = CKEDITOR.instances['{{ form.overview.id_for_label }}'].getData();
+            } else {
+                const textarea = document.getElementById('{{ form.overview.id_for_label }}');
+                if (textarea) {
+                    content = textarea.value;
+                    // Простая замена переносов строк на теги <br>
+                    content = content.replace(/\n/g, '<br>');
+                }
+            }
+            
+            const preview1 = document.getElementById('overviewPreview');
+            const preview2 = document.getElementById('finalPreview');
+            
+            if (preview1) {
+                preview1.innerHTML = content || '<p class="text-muted">Your description will appear here...</p>';
+            }
+            if (preview2) {
+                preview2.innerHTML = content || '<p class="text-muted">Course description will appear here...</p>';
+            }
+        } catch (error) {
+            console.error('Preview update error:', error);
+        }
     }
-  });
-});
+    
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        initCKEditor();
+        updateAllPreviews();
+        
+        // Проверяем, есть ли уже данные в форме (при редактировании)
+        const overviewTextarea = document.getElementById('{{ form.overview.id_for_label }}');
+        if (overviewTextarea && overviewTextarea.value) {
+            // Обновляем превью с существующими данными
+            setTimeout(updatePreview, 1000);
+        }
+    });
+    
+    function nextSection() {
+        if (currentSection < 3) {
+            if (validateSection(currentSection)) {
+                // Скрываем текущую секцию
+                document.getElementById(`section${currentSection}`).style.display = 'none';
+                document.getElementById(`step${currentSection}Number`).classList.remove('active');
+                document.getElementById(`step${currentSection}Label`).classList.remove('active');
+                
+                // Показываем следующую секцию
+                currentSection++;
+                document.getElementById(`section${currentSection}`).style.display = 'block';
+                document.getElementById(`step${currentSection}Number`).classList.add('active');
+                document.getElementById(`step${currentSection}Label`).classList.add('active');
+                
+                // Обновляем все превью
+                updateAllPreviews();
+                
+                // Обновляем скрытое поле с текущей секцией
+                const sectionField = document.getElementById('current_section');
+                if (sectionField) {
+                    sectionField.value = currentSection;
+                }
+            }
+        }
+    }
+    
+    function prevSection() {
+        if (currentSection > 1) {
+            // Скрываем текущую секцию
+            document.getElementById(`section${currentSection}`).style.display = 'none';
+            document.getElementById(`step${currentSection}Number`).classList.remove('active');
+            document.getElementById(`step${currentSection}Label`).classList.remove('active');
+            
+            // Показываем предыдущую секцию
+            currentSection--;
+            document.getElementById(`section${currentSection}`).style.display = 'block';
+            document.getElementById(`step${currentSection}Number`).classList.add('active');
+            document.getElementById(`step${currentSection}Label`).classList.add('active');
+            
+            // Обновляем скрытое поле с текущей секцией
+            const sectionField = document.getElementById('current_section');
+            if (sectionField) {
+                sectionField.value = currentSection;
+            }
+        }
+    }
+    
+    function validateSection(sectionNum) {
+        let isValid = true;
+        const errorMessages = [];
+        
+        if (sectionNum === 1) {
+            const title = document.getElementById('{{ form.title.id_for_label }}');
+            const subject = document.getElementById('{{ form.subject.id_for_label }}');
+            
+            // Валидация заголовка
+            if (!title.value.trim()) {
+                showError(title, 'Course title is required');
+                errorMessages.push('Please enter a course title');
+                isValid = false;
+            } else if (title.value.trim().length > 200) {
+                showError(title, 'Title is too long (max 200 characters)');
+                errorMessages.push('Title is too long (max 200 characters)');
+                isValid = false;
+            } else {
+                clearError(title);
+            }
+            
+            // Валидация предмета
+            if (!subject.value) {
+                showError(subject, 'Please select a subject');
+                errorMessages.push('Please select a subject');
+                isValid = false;
+            } else {
+                clearError(subject);
+            }
+        }
+        
+        if (sectionNum === 2) {
+            let overviewContent = '';
+            
+            if (ckeditorInitialized && CKEDITOR.instances['{{ form.overview.id_for_label }}']) {
+                overviewContent = CKEDITOR.instances['{{ form.overview.id_for_label }}'].getData();
+            } else {
+                const overviewField = document.getElementById('{{ form.overview.id_for_label }}');
+                overviewContent = overviewField ? overviewField.value : '';
+            }
+            
+            if (!overviewContent.trim()) {
+                alert('Please provide a course description');
+                isValid = false;
+            }
+        }
+        
+        // Показываем все ошибки, если есть
+        if (errorMessages.length > 0) {
+            alert(errorMessages.join('\n'));
+        }
+        
+        return isValid;
+    }
+    
+    function showError(element, message) {
+        if (!element) return;
+        
+        element.classList.add('is-invalid');
+        element.style.borderColor = 'var(--danger-color)';
+        element.style.boxShadow = '0 0 0 3px rgba(247, 37, 133, 0.15)';
+        
+        // Удаляем старые сообщения об ошибках
+        const oldError = element.parentNode.querySelector('.invalid-feedback');
+        if (oldError) oldError.remove();
+        
+        // Добавляем новое сообщение
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'invalid-feedback d-block';
+        errorDiv.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i>${message}`;
+        element.parentNode.appendChild(errorDiv);
+    }
+    
+    function clearError(element) {
+        if (!element) return;
+        
+        element.classList.remove('is-invalid');
+        element.style.borderColor = '';
+        element.style.boxShadow = '';
+        
+        const errorDiv = element.parentNode.querySelector('.invalid-feedback');
+        if (errorDiv) errorDiv.remove();
+    }
+    
+    function updateAllPreviews() {
+        // Обновляем заголовок
+        const titleField = document.getElementById('{{ form.title.id_for_label }}');
+        const previewTitle = document.getElementById('previewTitle');
+        if (titleField && previewTitle) {
+            previewTitle.textContent = titleField.value.trim() || 'Course Title';
+        }
+        
+        // Обновляем предмет
+        const subjectSelect = document.getElementById('{{ form.subject.id_for_label }}');
+        const previewSubject = document.getElementById('previewSubject');
+        if (subjectSelect && previewSubject) {
+            const selectedOption = subjectSelect.options[subjectSelect.selectedIndex];
+            if (selectedOption.text !== '---------') {
+                previewSubject.textContent = selectedOption.text;
+            } else {
+                previewSubject.textContent = 'Subject';
+            }
+        }
+        
+        // Обновляем описание
+        updatePreview();
+    }
+    
+    // Обновление превью при изменении полей
+    document.getElementById('{{ form.title.id_for_label }}')?.addEventListener('input', updateAllPreviews);
+    document.getElementById('{{ form.subject.id_for_label }}')?.addEventListener('change', updateAllPreviews);
+    
+    // Автогенерация slug из заголовка
+    document.getElementById('{{ form.title.id_for_label }}')?.addEventListener('blur', function() {
+        const slugField = document.getElementById('{{ form.slug.id_for_label }}');
+        if (slugField && !slugField.value.trim()) {
+            const title = this.value.trim();
+            if (title) {
+                const slug = title.toLowerCase()
+                    .replace(/[^\w\s-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/--+/g, '-')
+                    .trim()
+                    .substring(0, 50);
+                slugField.value = slug;
+            }
+        }
+    });
+    
+    // Предотвращение двойной отправки формы
+    document.getElementById('courseForm')?.addEventListener('submit', function(e) {
+        // Проверяем подтверждение
+        const confirmCheckbox = document.getElementById('confirmInfo');
+        if (currentSection === 3 && confirmCheckbox && !confirmCheckbox.checked) {
+            e.preventDefault();
+            alert('Please confirm that all information is correct');
+            confirmCheckbox.focus();
+            return;
+        }
+        
+        // Валидация всей формы
+        if (!validateSection(1) || !validateSection(2)) {
+            e.preventDefault();
+            alert('Please fix all errors before submitting');
+            return;
+        }
+        
+        // Отключаем кнопку отправки
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        }
+        
+        // Сохраняем данные из CKEditor в textarea перед отправкой
+        if (ckeditorInitialized && CKEDITOR.instances['{{ form.overview.id_for_label }}']) {
+            const content = CKEDITOR.instances['{{ form.overview.id_for_label }}'].getData();
+            const overviewField = document.getElementById('{{ form.overview.id_for_label }}');
+            if (overviewField) {
+                overviewField.value = content;
+            }
+        }
+    });
 </script>
 {% endblock %}

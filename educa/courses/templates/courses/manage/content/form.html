@@ -1,218 +1,256 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}
   {% if object %}
-    Edit "{{ object.title }}" | Educa
+    Edit "{{ object.title }}" - Educa
   {% else %}
-    Add New Content | Educa
+    Add New Content - Educa
   {% endif %}
 {% endblock %}
 
-{% block content %}
-<div class="courses-container">
-  <div class="courses-header">
-    <div class="header-content">
-      <h1 class="page-title">
-        <i class="fas fa-{% if object %}edit{% else %}plus-circle{% endif %}"></i>
-        {% if object %}
-          Edit "{{ object.title }}"
-        {% else %}
-          Add New Content
-        {% endif %}
-      </h1>
-      <p class="page-subtitle">
-        {% if object %}
-          Update your content details
-        {% else %}
-          Add new educational content to your module
-        {% endif %}
-      </p>
-    </div>
-    <div class="header-actions">
-      {% if module %}
-      <a href="{% url 'module_content_list' module.id %}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i>
-        <span>Back to Contents</span>
-      </a>
-      {% endif %}
-    </div>
-  </div>
-
-  <div class="auth-card module">
-    <div class="module-header">
-      <h2>
-        <i class="fas fa-info-circle"></i>
-        Content Information
-      </h2>
-      <p class="form-subtitle">
-        {% if object %}
-          Modify the content details below
-        {% else %}
-          Fill in the details to create new content
-        {% endif %}
-      </p>
-    </div>
+{% block extra_css %}
+<style>
+    .content-type-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 24px;
+        margin-right: 16px;
+        flex-shrink: 0;
+    }
     
-    <form action="" method="post" enctype="multipart/form-data" class="content-form">
-      {% csrf_token %}
-      
-      <div class="form-group">
-        {% for field in form %}
-        <div class="form-field">
-          <label for="{{ field.id_for_label }}" class="form-label">
-            <i class="fas 
-              {% if field.name == 'title' %}fa-heading
-              {% elif field.name == 'content' %}fa-file-alt
-              {% elif field.name in 'video,image,file' %}fa-upload
-              {% elif field.name == 'order' %}fa-sort-numeric-down
-              {% elif field.name == 'module' %}fa-layer-group
-              {% elif field.name == 'description' %}fa-align-left
-              {% else %}fa-edit{% endif %}">
-            </i>
-            {{ field.label }}
-          </label>
-          
-          {% if field.field.widget.input_type == 'file' %}
-          <div class="file-upload-wrapper">
-            {{ field }}
-            <div class="file-upload-preview" id="preview-{{ field.name }}">
-              {% if object and field.value %}
-              <div class="current-file">
-                <i class="fas fa-file"></i>
-                <span>Current: {{ field.value.name|default:field.value }}</span>
-              </div>
-              {% endif %}
-            </div>
-          </div>
-          {% else %}
-            {{ field }}
-          {% endif %}
-          
-          {% if field.help_text %}
-          <div class="form-help">{{ field.help_text }}</div>
-          {% endif %}
-          
-          {% if field.errors %}
-          <div class="form-errors">
-            {% for error in field.errors %}
-            <span class="error-message">
-              <i class="fas fa-exclamation-circle"></i> {{ error }}
-            </span>
-            {% endfor %}
-          </div>
-          {% endif %}
-        </div>
-        {% endfor %}
-      </div>
-      
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary btn-submit">
-          <i class="fas fa-save"></i>
-          <span>Save Content</span>
-        </button>
-        
-        {% if object %}
-        <a href="{% url 'module_content_list' object.module.id %}" class="btn btn-cancel">
-          <i class="fas fa-times"></i>
-          <span>Cancel</span>
-        </a>
-        {% elif module %}
-        <a href="{% url 'module_content_list' module.id %}" class="btn btn-cancel">
-          <i class="fas fa-times"></i>
-          <span>Cancel</span>
-        </a>
-        {% else %}
-        <a href="{% url 'manage_course_list' %}" class="btn btn-cancel">
-          <i class="fas fa-times"></i>
-          <span>Cancel</span>
-        </a>
-        {% endif %}
-      </div>
-    </form>
-  </div>
-</div>
+    .text-content { background: linear-gradient(135deg, #4361ee, #3a56d4); }
+    .image-content { background: linear-gradient(135deg, #7209b7, #5a08a3); }
+    .video-content { background: linear-gradient(135deg, #f72585, #e11575); }
+    .file-content { background: linear-gradient(135deg, #4cc9f0, #3ab8dd); }
+    
+    .content-preview {
+        border: 2px dashed var(--gray-300);
+        border-radius: var(--border-radius);
+        padding: 30px;
+        text-align: center;
+        margin-top: 20px;
+        background: var(--gray-100);
+    }
+    
+    .file-upload-area {
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    
+    .file-upload-area:hover {
+        border-color: var(--primary-color);
+        background: rgba(67, 97, 238, 0.05);
+    }
+    
+    .preview-image {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: var(--border-radius-sm);
+        margin-top: 20px;
+    }
+</style>
 {% endblock %}
 
-{% block domready %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Add classes to form inputs
-  const inputs = document.querySelectorAll('.content-form input:not([type="file"]):not([type="submit"]), .content-form textarea, .content-form select');
-  inputs.forEach(input => {
-    input.classList.add('form-control');
-  });
-  
-  // File upload preview
-  const fileInputs = document.querySelectorAll('input[type="file"]');
-  fileInputs.forEach(input => {
-    input.addEventListener('change', function() {
-      const previewId = 'preview-' + this.name;
-      const preview = document.getElementById(previewId);
-      if (preview && this.files.length > 0) {
-        const file = this.files[0];
-        let icon = 'fa-file';
-        let text = file.name;
-        
-        // Set appropriate icon based on file type
-        if (file.type.startsWith('image/')) {
-          icon = 'fa-image';
-          // Create image preview
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            preview.innerHTML = `
-              <div class="image-preview">
-                <img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 150px;">
-                <span>${file.name}</span>
-              </div>
-            `;
-          };
-          reader.readAsDataURL(file);
-          return;
-        } else if (file.type.startsWith('video/')) {
-          icon = 'fa-video';
-        } else if (file.type.includes('pdf')) {
-          icon = 'fa-file-pdf';
-        } else if (file.type.includes('word') || file.type.includes('document')) {
-          icon = 'fa-file-word';
-        }
-        
-        if (!preview.querySelector('.image-preview')) {
-          preview.innerHTML = `
-            <div class="file-preview">
-              <i class="fas ${icon}"></i>
-              <span>${text}</span>
-              <small>(${(file.size / 1024).toFixed(1)} KB)</small>
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="page-header mb-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="content-type-icon 
+                        {% if object.item.model_name == 'text' %}text-content
+                        {% elif object.item.model_name == 'image' %}image-content
+                        {% elif object.item.model_name == 'video' %}video-content
+                        {% else %}file-content{% endif %} text-white">
+                        {% if object.item.model_name == 'text' %}
+                            <i class="fas fa-file-alt"></i>
+                        {% elif object.item.model_name == 'image' %}
+                            <i class="fas fa-image"></i>
+                        {% elif object.item.model_name == 'video' %}
+                            <i class="fas fa-video"></i>
+                        {% else %}
+                            <i class="fas fa-file"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h1 class="mb-1">
+                            {% if object %}
+                                <i class="fas fa-edit text-primary me-2"></i>
+                                Edit Content
+                            {% else %}
+                                <i class="fas fa-plus-circle text-primary me-2"></i>
+                                Add New Content
+                            {% endif %}
+                        </h1>
+                        <p class="text-muted">
+                            {% if object %}
+                                Edit "{{ object.title }}" content
+                            {% else %}
+                                Create new content for your module
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Fill in the details below to {% if object %}update{% else %}create{% endif %} your content
+                </div>
             </div>
-          `;
+
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h3 class="h5 mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Content Information
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form action="" method="post" enctype="multipart/form-data" id="contentForm">
+                        {% csrf_token %}
+                        
+                        {% for field in form %}
+                        <div class="form-group mb-4">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                <i class="fas fa-{{ field.label|lower|cut:' ' }} me-1"></i>
+                                {{ field.label }}
+                                {% if field.field.required %}
+                                <span class="text-danger">*</span>
+                                {% endif %}
+                            </label>
+                            
+                            {% if field.name == 'content' %}
+                                <div class="content-preview file-upload-area" id="fileUploadArea">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <p class="mb-2">Click to upload or drag and drop</p>
+                                    <p class="text-muted small">Supported formats: 
+                                        {% if object.item.model_name == 'image' %}JPG, PNG, GIF{% endif %}
+                                        {% if object.item.model_name == 'video' %}MP4, WebM{% endif %}
+                                        {% if object.item.model_name == 'file' %}PDF, DOC, PPT{% endif %}
+                                    </p>
+                                    {{ field }}
+                                    <div id="fileName" class="mt-2"></div>
+                                </div>
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
+                            
+                            {% if field.help_text %}
+                            <div class="form-text text-muted mt-1">
+                                <i class="fas fa-question-circle me-1"></i>{{ field.help_text }}
+                            </div>
+                            {% endif %}
+                            
+                            {% if field.errors %}
+                            <div class="alert alert-danger mt-2" role="alert">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                {{ field.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="d-flex gap-3 mt-5 pt-4 border-top">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>
+                                {% if object %}Update Content{% else %}Create Content{% endif %}
+                            </button>
+                            <a href="javascript:history.back()" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            {% if object and object.item.model_name == 'image' and object.item.file %}
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h3 class="h5 mb-0">
+                        <i class="fas fa-image me-2"></i>
+                        Preview
+                    </h3>
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ object.item.file.url }}" alt="Preview" class="preview-image">
+                    <p class="text-muted mt-2">Current uploaded image</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // File upload styling
+        const fileInput = document.querySelector('input[type="file"]');
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const fileName = document.getElementById('fileName');
+        
+        if (fileInput && fileUploadArea) {
+            fileUploadArea.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    fileName.innerHTML = `
+                        <div class="alert alert-success d-flex align-items-center" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <div>
+                                Selected: <strong>${this.files[0].name}</strong><br>
+                                <small>Size: ${(this.files[0].size / 1024 / 1024).toFixed(2)} MB</small>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            // Drag and drop
+            fileUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileUploadArea.style.borderColor = 'var(--primary-color)';
+                fileUploadArea.style.background = 'rgba(67, 97, 238, 0.1)';
+            });
+            
+            fileUploadArea.addEventListener('dragleave', () => {
+                fileUploadArea.style.borderColor = '';
+                fileUploadArea.style.background = '';
+            });
+            
+            fileUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
+                fileUploadArea.style.borderColor = '';
+                fileUploadArea.style.background = '';
+            });
         }
-      }
+        
+        // Form validation
+        const form = document.getElementById('contentForm');
+        form.addEventListener('submit', function(e) {
+            const requiredFields = form.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.style.borderColor = 'var(--danger-color)';
+                } else {
+                    field.style.borderColor = '';
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill in all required fields marked with *');
+            }
+        });
     });
-  });
-  
-  // Add focus effects
-  const formElements = document.querySelectorAll('.content-form input, .content-form textarea, .content-form select');
-  formElements.forEach(element => {
-    if (element.type !== 'file' && element.type !== 'submit') {
-      element.addEventListener('focus', function() {
-        this.parentElement.classList.add('focused');
-      });
-      
-      element.addEventListener('blur', function() {
-        this.parentElement.classList.remove('focused');
-      });
-    }
-  });
-  
-  // Textarea auto-resize
-  const textareas = document.querySelectorAll('.content-form textarea');
-  textareas.forEach(textarea => {
-    textarea.addEventListener('input', function() {
-      this.style.height = 'auto';
-      this.style.height = (this.scrollHeight) + 'px';
-    });
-    // Trigger initial resize
-    textarea.dispatchEvent(new Event('input'));
-  });
-});
 </script>
 {% endblock %}

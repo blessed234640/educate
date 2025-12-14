@@ -2,70 +2,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Educa - Modern Learning Platform{% endblock %}</title>
+    <title>{% block title %}Educa - Online Learning Platform{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <div class="page-wrapper">
-        <header class="header">
-            <div class="header-container">
-                <a href="/" class="logo">
-                    <i class="fas fa-graduation-cap logo-icon"></i>
-                    <span class="logo-text">Educa</span>
-                </a>
-                <nav class="nav-menu">
-                    <ul class="menu-list">
-                        {% if request.user.is_authenticated %}
-                        <li class="menu-item">
-                            <form action="{% url 'logout' %}" method="post" class="logout-form">
-                                {% csrf_token %}
-                                <button type="submit" class="btn-logout">
-                                    <i class="fas fa-sign-out-alt"></i>
-                                    <span>Sign Out</span>
-                                </button>
-                            </form>
-                        </li>
-                        {% else %}
-                        <li class="menu-item">
-                            <a href="{% url 'login' %}" class="btn-login">
-                                <i class="fas fa-sign-in-alt"></i>
-                                <span>Sign In</span>
-                            </a>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-            </div>
-        </header>
+    <header id="header">
+        <div class="container">
+            <a href="/" class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <span>Educa</span>
+            </a>
+            <ul class="menu">
+                {% if request.user.is_authenticated %}
+                    <li>
+                        <form action="{% url "logout" %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-secondary">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Sign Out
+                            </button>
+                        </form>
+                    </li>
+                    
+                    <!-- Wishlist link -->
+                    <li>
+                        <a href="{% url 'wishlist_list' %}" class="btn btn-sm btn-secondary position-relative">
+                            <i class="fas fa-heart me-1"></i>Wishlist
+                            <span id="wishlistCounter" 
+                                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                  style="font-size: 0.6rem; padding: 0.2rem 0.4rem;">
+                                {% if request.user.is_authenticated %}
+                                    {{ request.user.wishlists.count|default:0 }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </span>
+                        </a>
+                    </li>
+                    
+                    {% if request.user.is_instructor %}
+                    <li>
+                        <a href="{% url "manage_course_list" %}" class="btn btn-sm btn-secondary">
+                            <i class="fas fa-cog"></i>
+                            Manage Courses
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <li>
+                        <a href="{% url "student_course_list" %}" class="btn btn-sm btn-secondary">
+                            <i class="fas fa-book"></i>
+                            My Courses
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <span class="text-white d-flex align-items-center gap-2">
+                            <i class="fas fa-user-circle"></i>
+                            {{ request.user.get_full_name|default:request.user.username }}
+                        </span>
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="{% url "login" %}" class="btn btn-sm btn-secondary">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Sign In
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url "student_registration" %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-user-plus"></i>
+                            Sign Up
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </header>
 
-        <main class="main-content">
-            <div class="content-container">
-                {% block content %}
-                {% endblock %}
-            </div>
-        </main>
+    <main id="content" class="container">
+        {% block content %}
+        {% endblock %}
+    </main>
 
-        <footer class="footer">
-            <div class="footer-container">
-                <p class="footer-text">© {% now "Y" %} Educa Learning Platform. All rights reserved.</p>
-                <p class="footer-subtext">Empowering education through technology</p>
+    <footer style="background: var(--gray-900); color: white; padding: 40px 0; margin-top: 60px;">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <a href="/" class="logo" style="font-size: 24px;">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Educa</span>
+                    </a>
+                    <p class="mt-2 text-muted">Online Learning Platform © {% now "Y" %}</p>
+                </div>
+                <div>
+                    <p>Learn. Grow. Succeed.</p>
+                </div>
             </div>
-        </footer>
-    </div>
-     {% block include_js %}
-     {% endblock %}
+        </div>
+    </footer>
+
+    {% block include_js %}
+    {% endblock %}
+    
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
-            // DOM loaded
+            // Add animation classes
+            document.querySelectorAll('.course-card, .module-item').forEach((el, index) => {
+                el.style.animationDelay = `${index * 0.1}s`;
+                el.classList.add('animate-slide-in');
+            });
+
+            // Form submission feedback
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function() {
+                    const submitBtn = this.querySelector('[type="submit"]');
+                    if (submitBtn) {
+                        const originalText = submitBtn.innerHTML;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                        submitBtn.disabled = true;
+                        
+                        // Revert after 5 seconds (in case of error)
+                        setTimeout(() => {
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        }, 5000);
+                    }
+                });
+            });
+
             {% block domready %}
             {% endblock %}
-        })
+        });
     </script>
 </body>
 </html>

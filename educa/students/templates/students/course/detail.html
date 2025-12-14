@@ -1,685 +1,358 @@
-{% extends "base.html" %} {% load static %} {% load cache %} {% block title %}{{
-object.title }} | Educa{% endblock %} {% block content %}
-<div class="student-course-detail-container">
-    <!-- Заголовок -->
-    <div class="course-header">
-        <h1 class="course-title">
-            <i class="fas fa-graduation-cap"></i>
-            {{ object.title }}
-        </h1>
-        <p class="course-subtitle">Currently viewing: {{ module.title }}</p>
-    </div>
+{% extends "base.html" %}
+{% load static %}
+{% load cache %}
 
-    <div class="course-layout">
-        <!-- Боковая панель с модулями -->
-        <div class="course-sidebar">
-            <div class="modules-card">
-                <div class="modules-header">
-                    <h3 class="modules-title">
-                        <i class="fas fa-list-ol"></i>
-                        Course Modules
-                    </h3>
-                    <p class="modules-count">
-                        {{ object.modules.count }} modules
-                    </p>
-                </div>
+{% block title %}
+  {{ object.title }} - Learning
+{% endblock %}
 
-                <div class="modules-list-wrapper">
-                    <ul class="modules-list" id="modules">
-                        {% for m in object.modules.all %}
-                        <li
-                            class="module-item {% if m == module %}active{% endif %}"
-                            data-id="{{ m.id }}"
-                        >
-                            <a
-                                href="{% url 'student_course_detail_module' object.id m.id %}"
-                                class="module-link"
-                            >
-                                <div class="module-order-badge">
-                                    <span class="order-number"
-                                        >{{ m.order|add:1 }}</span
-                                    >
-                                </div>
-                                <div class="module-info">
-                                    <h4 class="module-item-title">
-                                        Module {{ m.order|add:1 }}
-                                    </h4>
-                                    <p class="module-item-description">
-                                        {{ m.title }}
-                                    </p>
-                                </div>
-                                {% if m == module %}
-                                <div class="module-active-indicator">
-                                    <i class="fas fa-chevron-right"></i>
-                                </div>
-                                {% endif %}
-                            </a>
-                        </li>
-                        {% empty %}
-                        <li class="empty-modules">
-                            <div class="empty-modules-icon">
-                                <i class="fas fa-book-open"></i>
-                            </div>
-                            <p class="empty-modules-text">No modules yet.</p>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- Основной контент модуля -->
-        <div class="course-main-content">
-            <div class="module-content-card">
-                <div class="module-header">
-                    <h2 class="current-module-title">
-                        <span class="module-badge"
-                            >Module {{ module.order|add:1 }}</span
-                        >
-                        {{ module.title }}
-                    </h2>
-                    {% if module.description %}
-                    <p class="module-description">{{ module.description }}</p>
-                    {% endif %}
-                </div>
-
-                <div class="module-contents-wrapper">
-                    {% cache 600 module_contents module %}
-                    {% for content in module.contents.all %}
-                        {% with item=content.item %}
-                        <div class="content-card">
-                            <div class="content-header">
-                                <h3 class="content-title">{{ item.title }}</h3>
-                                <div class="content-meta">
-                                    <span class="content-type">
-                                        <i class="fas fa-file-alt"></i>
-                                        Content
-                                    </span>
-                                </div>
-                            </div>
-                            
-                            <div class="content-body">
-                                {{ item.render|safe }}
-                            </div>
-                            
-                            <div class="content-footer">
-                                <div class="content-navigation">
-                                    {% if not forloop.first %}
-                                    <a href="#" class="btn-nav prev-btn">
-                                        <i class="fas fa-arrow-left"></i>
-                                        Previous
-                                    </a>
-                                    {% endif %}
-                                    {% if not forloop.last %}
-                                    <a href="#" class="btn-nav next-btn">
-                                        Next
-                                        <i class="fas fa-arrow-right"></i>
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endwith %}
-                         {% empty %}
-                        <div class="empty-content-state">
-                            <div class="empty-content-icon">
-                                <i class="fas fa-file-alt"></i>
-                            </div>
-                            <h3 class="empty-content-title">
-                                No Content Available
-                            </h3>
-                            <p class="empty-content-text">
-                                This module doesn't have any content yet.
-                            </p>
-                        </div>
-                        {% endfor %}
-                    {% endcache %}
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
+{% block extra_css %}
 <style>
-    /* ============================================
-   СТИЛИ ДЛЯ ДЕТАЛЬНОЙ СТРАНИЦЫ КУРСА СТУДЕНТА
-   ============================================ */
-
-    .student-course-detail-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 2rem 1.5rem;
-    }
-
-    /* Заголовок курса */
-    .course-header {
-        margin-bottom: 2.5rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 1px solid #e5e7eb;
-    }
-
-    .course-title {
-        font-family: "Poppins", sans-serif;
-        font-size: 2rem;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .course-title i {
-        color: #4f46e5;
-        font-size: 1.75rem;
-    }
-
-    .course-subtitle {
-        color: #6b7280;
-        font-size: 0.875rem;
-        margin: 0;
-    }
-
-    /* Макет курса */
-    .course-layout {
+    /* Стили для страницы курса */
+    .course-learning-page {
         display: grid;
-        grid-template-columns: 320px 1fr;
-        gap: 2rem;
+        grid-template-columns: 300px 1fr;
+        gap: 30px;
         min-height: calc(100vh - 200px);
     }
-
-    @media (max-width: 1024px) {
-        .course-layout {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    /* Карточка модулей */
-    .modules-card {
+    
+    /* Сайдбар с модулями */
+    .course-sidebar {
         background: white;
-        border-radius: 1rem;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-        overflow: hidden;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        padding: 25px;
         height: fit-content;
         position: sticky;
-        top: 1rem;
-    }
-
-    .modules-header {
-        padding: 1.5rem;
-        background: linear-gradient(135deg, #4f46e5, #818cf8);
-        color: white;
-    }
-
-    .modules-title {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin: 0 0 0.25rem 0;
-    }
-
-    .modules-count {
-        font-size: 0.875rem;
-        opacity: 0.9;
-        margin: 0;
-    }
-
-    .modules-list-wrapper {
-        padding: 1rem;
-        max-height: 500px;
+        top: 100px;
+        max-height: calc(100vh - 150px);
         overflow-y: auto;
     }
-
+    
+    .course-sidebar-header {
+        border-bottom: 2px solid var(--primary-color);
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .course-sidebar-header h2 {
+        color: var(--gray-900);
+        font-size: 1.5rem;
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .course-sidebar-header .course-title {
+        color: var(--primary-color);
+        font-size: 1.1rem;
+        margin-top: 5px;
+        opacity: 0.8;
+    }
+    
+    /* Список модулей */
     .modules-list {
         list-style: none;
-        margin: 0;
         padding: 0;
+        margin: 0;
     }
-
+    
     .module-item {
-        margin-bottom: 0.5rem;
-        border-radius: 0.75rem;
-        border: 1px solid #e5e7eb;
-        background: white;
-        transition: all 150ms ease;
+        margin-bottom: 12px;
+        border-radius: var(--border-radius-sm);
+        overflow: hidden;
+        transition: var(--transition);
+        border: 1px solid var(--gray-200);
     }
-
+    
     .module-item:hover {
-        border-color: #4f46e5;
-        box-shadow: 0 2px 4px -1px rgba(79, 70, 229, 0.1);
+        border-color: var(--primary-color);
+        transform: translateX(5px);
     }
-
-    .module-item.active {
-        border-color: #4f46e5;
-        background: linear-gradient(
-            135deg,
-            rgba(79, 70, 229, 0.05),
-            rgba(129, 140, 248, 0.05)
-        );
+    
+    .module-item.selected {
+        border-color: var(--primary-color);
+        background: linear-gradient(135deg, rgba(13, 110, 253, 0.05), rgba(13, 110, 253, 0.1));
     }
-
+    
     .module-link {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem;
+        display: block;
+        padding: 15px;
+        color: var(--gray-800);
         text-decoration: none;
-        color: inherit;
+        transition: var(--transition);
     }
-
-    .module-order-badge {
-        width: 36px;
-        height: 36px;
-        background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-        border-radius: 0.5rem;
+    
+    .module-item:hover .module-link {
+        color: var(--primary-color);
+    }
+    
+    .module-item.selected .module-link {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+    
+    .module-order {
+        display: inline-block;
+        width: 28px;
+        height: 28px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 28px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-right: 10px;
+    }
+    
+    .module-item.selected .module-order {
+        background: var(--success-color);
+    }
+    
+    .module-name {
+        font-size: 14px;
+        line-height: 1.4;
+    }
+    
+    /* Чат кнопка */
+    .chat-room-btn {
+        margin-top: 25px;
+        padding: 15px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: var(--border-radius);
+        text-decoration: none;
         display: flex;
         align-items: center;
         justify-content: center;
-        flex-shrink: 0;
+        gap: 10px;
+        font-weight: 500;
+        transition: var(--transition);
+        text-align: center;
     }
-
-    .module-item.active .module-order-badge {
-        background: linear-gradient(135deg, #4f46e5, #818cf8);
-    }
-
-    .order-number {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #4b5563;
-    }
-
-    .module-item.active .order-number {
+    
+    .chat-room-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
         color: white;
     }
-
-    .module-info {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .module-item-title {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #1f2937;
-        margin: 0 0 0.25rem 0;
-    }
-
-    .module-item-description {
-        font-size: 0.75rem;
-        color: #6b7280;
-        margin: 0;
-        line-height: 1.4;
-    }
-
-    .module-active-indicator {
-        color: #4f46e5;
-    }
-
-    .empty-modules {
-        text-align: center;
-        padding: 2rem 1rem;
-    }
-
-    .empty-modules-icon {
-        font-size: 2rem;
-        color: #9ca3af;
-        margin-bottom: 1rem;
-    }
-
-    .empty-modules-text {
-        color: #6b7280;
-        font-size: 0.875rem;
-        margin: 0;
-    }
-
-    /* Основной контент */
-    .course-main-content {
-        min-height: calc(100vh - 200px);
-    }
-
-    .module-content-card {
+    
+    /* Основное содержимое */
+    .course-content {
         background: white;
-        border-radius: 1rem;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-        overflow: hidden;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        padding: 40px;
+        min-height: 500px;
     }
-
+    
     .module-header {
-        padding: 1.5rem;
-        background: linear-gradient(135deg, #f9fafb, #f3f4f6);
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid var(--gray-200);
+        padding-bottom: 20px;
+        margin-bottom: 30px;
     }
-
-    .current-module-title {
-        font-family: "Poppins", sans-serif;
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 0.75rem;
+    
+    .module-header h1 {
+        color: var(--gray-900);
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 10px 0;
+    }
+    
+    .module-progress {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 20px;
+        color: var(--gray-600);
+        font-size: 14px;
     }
-
-    .module-badge {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        background: linear-gradient(135deg, #4f46e5, #818cf8);
-        color: white;
-        border-radius: 0.5rem;
-        font-size: 0.875rem;
-        font-weight: 600;
+    
+    .module-progress .badge {
+        background: var(--gray-100);
+        color: var(--gray-700);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 500;
     }
-
-    .module-description {
-        color: #6b7280;
-        font-size: 0.875rem;
-        line-height: 1.5;
-        margin: 0;
+    
+    /* Контент урока */
+    .lesson-content {
+        line-height: 1.8;
+        color: var(--gray-700);
+        font-size: 16px;
     }
-
-    .module-contents-wrapper {
-        padding: 1.5rem;
+    
+    .lesson-content h2 {
+        color: var(--gray-900);
+        font-size: 1.5rem;
+        margin: 40px 0 20px 0;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--primary-color);
     }
-
-    .content-card {
-        margin-bottom: 2rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 1rem;
-        overflow: hidden;
-        background: white;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    }
-
-    .content-header {
-        padding: 1.5rem;
-        background: linear-gradient(135deg, #f9fafb, #f3f4f6);
-        border-bottom: 1px solid #e5e7eb;
-    }
-
-    .content-title {
+    
+    .lesson-content h3 {
+        color: var(--gray-800);
         font-size: 1.25rem;
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 0.75rem;
+        margin: 30px 0 15px 0;
     }
-
-    .content-meta {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
+    
+    .lesson-content p {
+        margin-bottom: 20px;
     }
-
-    .content-type {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.25rem 0.5rem;
-        background: rgba(79, 70, 229, 0.1);
-        color: #4f46e5;
-        border-radius: 0.25rem;
-        font-size: 0.75rem;
-        font-weight: 500;
+    
+    .lesson-content ul, .lesson-content ol {
+        padding-left: 25px;
+        margin-bottom: 20px;
     }
-
-    .content-type i {
-        font-size: 0.75rem;
+    
+    .lesson-content li {
+        margin-bottom: 10px;
+        position: relative;
     }
-
-    .content-body {
-        padding: 1.5rem;
+    
+    .lesson-content ul li::before {
+        content: '•';
+        color: var(--primary-color);
+        font-weight: bold;
+        position: absolute;
+        left: -15px;
     }
-
-    .content-body h2,
-    .content-body h3,
-    .content-body h4 {
-        color: #1f2937;
-        margin-bottom: 1rem;
-    }
-
-    .content-body p {
-        color: #4b5563;
-        line-height: 1.7;
-        margin-bottom: 1rem;
-    }
-
-    .content-body ul,
-    .content-body ol {
-        color: #4b5563;
-        margin-bottom: 1rem;
-        padding-left: 1.5rem;
-    }
-
-    .content-body li {
-        margin-bottom: 0.5rem;
-    }
-
-    .content-body img {
+    
+    .lesson-content img, .lesson-content video {
         max-width: 100%;
-        height: auto;
-        border-radius: 0.5rem;
-        margin: 1rem 0;
+        border-radius: var(--border-radius);
+        margin: 20px 0;
+        box-shadow: var(--shadow-sm);
     }
-
-    .content-body iframe {
-        width: 100%;
-        border-radius: 0.5rem;
-        margin: 1rem 0;
-    }
-
-    .content-footer {
-        padding: 1.5rem;
-        border-top: 1px solid #e5e7eb;
-        background: #f9fafb;
-    }
-
-    .content-navigation {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .btn-nav {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.5rem;
-        color: #4b5563;
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 150ms ease;
-    }
-
-    .btn-nav:hover {
-        background: #f9fafb;
-        border-color: #4f46e5;
-        color: #4f46e5;
-    }
-
-    .empty-content-state {
+    
+    /* Пустое состояние */
+    .empty-module {
         text-align: center;
-        padding: 4rem 2rem;
+        padding: 80px 20px;
+        color: var(--gray-500);
     }
-
-    .empty-content-icon {
-        font-size: 3rem;
-        color: #9ca3af;
-        margin-bottom: 1.5rem;
+    
+    .empty-module-icon {
+        font-size: 64px;
+        opacity: 0.3;
+        margin-bottom: 20px;
+        color: var(--primary-color);
     }
-
-    .empty-content-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 0.5rem;
-    }
-
-    .empty-content-text {
-        color: #6b7280;
-        font-size: 0.875rem;
-        max-width: 300px;
-        margin: 0 auto;
-        line-height: 1.5;
-    }
-
-    /* Скроллбар */
-    .modules-list-wrapper::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .modules-list-wrapper::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 3px;
-    }
-
-    .modules-list-wrapper::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
-        border-radius: 3px;
-    }
-
-    .modules-list-wrapper::-webkit-scrollbar-thumb:hover {
-        background: #a1a1a1;
-    }
-
-    /* Анимации */
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .content-card {
-        animation: fadeIn 0.5s ease-out;
-    }
-
-    .content-card:nth-child(1) {
-        animation-delay: 0.1s;
-    }
-    .content-card:nth-child(2) {
-        animation-delay: 0.2s;
-    }
-    .content-card:nth-child(3) {
-        animation-delay: 0.3s;
-    }
-    .content-card:nth-child(4) {
-        animation-delay: 0.4s;
-    }
-    .content-card:nth-child(5) {
-        animation-delay: 0.5s;
-    }
-
+    
     /* Адаптивность */
-    @media (max-width: 768px) {
-        .student-course-detail-container {
-            padding: 1rem;
+    @media (max-width: 992px) {
+        .course-learning-page {
+            grid-template-columns: 1fr;
         }
-
-        .course-title {
+        
+        .course-sidebar {
+            position: static;
+            max-height: none;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .course-content {
+            padding: 25px;
+        }
+        
+        .module-header h1 {
+            font-size: 1.75rem;
+        }
+        
+        .lesson-content {
+            font-size: 15px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .course-sidebar {
+            padding: 20px;
+        }
+        
+        .course-content {
+            padding: 20px;
+        }
+        
+        .module-header h1 {
             font-size: 1.5rem;
         }
-
-        .current-module-title {
+        
+        .lesson-content h2 {
             font-size: 1.25rem;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-        }
-
-        .content-navigation {
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .btn-nav {
-            width: 100%;
-            justify-content: center;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .module-link {
-            flex-direction: column;
-            text-align: center;
-            gap: 0.75rem;
-        }
-
-        .module-info {
-            text-align: center;
         }
     }
 </style>
+{% endblock %}
 
-{% block domready %}
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Подсветка активного модуля
-        const activeModule = document.querySelector(".module-item.active");
-        if (activeModule) {
-            activeModule.scrollIntoView({
-                behavior: "smooth",
-                block: "nearest",
-            });
-        }
-
-        // Плавная прокрутка к контенту
-        const contentCards = document.querySelectorAll(".content-card");
-        contentCards.forEach((card, index) => {
-            card.style.animationDelay = `${index * 100}ms`;
-        });
-
-        // Навигация между модулями
-        const moduleLinks = document.querySelectorAll(".module-link");
-        moduleLinks.forEach((link) => {
-            link.addEventListener("click", function (e) {
-                // Убираем активный класс у всех модулей
-                document.querySelectorAll(".module-item").forEach((item) => {
-                    item.classList.remove("active");
-                });
-
-                // Добавляем активный класс текущему модулю
-                this.closest(".module-item").classList.add("active");
-            });
-        });
-
-        // Навигация по контенту
-        const prevButtons = document.querySelectorAll(".prev-btn");
-        const nextButtons = document.querySelectorAll(".next-btn");
-
-        prevButtons.forEach((btn) => {
-            btn.addEventListener("click", function (e) {
-                e.preventDefault();
-                const currentCard = this.closest(".content-card");
-                const prevCard = currentCard.previousElementSibling;
-
-                if (prevCard && prevCard.classList.contains("content-card")) {
-                    prevCard.scrollIntoView({ behavior: "smooth" });
-                }
-            });
-        });
-
-        nextButtons.forEach((btn) => {
-            btn.addEventListener("click", function (e) {
-                e.preventDefault();
-                const currentCard = this.closest(".content-card");
-                const nextCard = currentCard.nextElementSibling;
-
-                if (nextCard && nextCard.classList.contains("content-card")) {
-                    nextCard.scrollIntoView({ behavior: "smooth" });
-                }
-            });
-        });
-    });
-</script>
-{% endblock %} {% endblock %}
+{% block content %}
+<div class="container">
+    <div class="course-learning-page">
+        <!-- Сайдбар с модулями -->
+        <aside class="course-sidebar">
+            <div class="course-sidebar-header">
+                <h2>Course Modules</h2>
+                <div class="course-title">{{ object.title }}</div>
+            </div>
+            
+            <ul class="modules-list" id="modules">
+                {% for m in object.modules.all %}
+                <li class="module-item {% if m == module %}selected{% endif %}" data-id="{{ m.id }}">
+                    <a href="{% url 'student_course_detail_module' object.id m.id %}" class="module-link">
+                        <span class="module-order">{{ m.order|add:1 }}</span>
+                        <span class="module-name">{{ m.title }}</span>
+                    </a>
+                </li>
+                {% empty %}
+                <li class="module-item">
+                    <div class="module-link text-muted">
+                        No modules yet.
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            
+            <a href="{% url 'chat:course_chat_room' object.id %}" class="chat-room-btn">
+                <i class="fas fa-comments"></i> Course Chat Room
+            </a>
+        </aside>
+        
+        <!-- Основное содержимое -->
+        <main class="course-content">
+            {% if module.contents.all %}
+            <div class="module-header">
+                <h1>{{ module.title }}</h1>
+                <div class="module-progress">
+                    <span class="badge">Module {{ module.order|add:1 }} of {{ object.modules.count }}</span>
+                    <span>{{ module.contents.count }} items</span>
+                </div>
+            </div>
+            
+            <div class="lesson-content">
+                <!-- ИСПРАВЛЕННЫЙ КЕШ: добавляем course.id и module.id для уникальности -->
+                {% cache 600 module_contents course.id module.id %}
+                    {% for content in module.contents.all %}
+                        {% with item=content.item %}
+                            {% if item.title %}
+                            <h2>{{ item.title }}</h2>
+                            {% endif %}
+                            <div class="content-item">
+                                {{ item.render }}
+                            </div>
+                        {% endwith %}
+                    {% endfor %}
+                {% endcache %}
+            </div>
+            {% else %}
+            <div class="empty-module">
+                <div class="empty-module-icon">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <h3>Module Content Coming Soon</h3>
+                <p class="text-muted">The instructor is preparing content for this module.</p>
+            </div>
+            {% endif %}
+        </main>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+# Virtual environment and dependencies
+Lib/
+Scripts/
+pyvenv.cfg
+pip-selfcheck.json
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+# Django
+*.log
+*.pid
+uwsgi_app.sock
+# Environment
+.env
+# SSL certificates
+ssl/
+*.crt
+*.key
+# Docker volumes
+data/

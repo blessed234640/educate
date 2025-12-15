@@ -3,7 +3,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.template.loader import render_to_string
-from ckeditor.fields import RichTextField
+from tinymce.models import HTMLField
 from .fields import OrderField
 
 
@@ -31,7 +31,7 @@ class Course(models.Model):
     )
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True)
-    overview = RichTextField()
+    overview = HTMLField()
     created = models.DateTimeField(auto_now_add=True)
     students = models.ManyToManyField(
         User,

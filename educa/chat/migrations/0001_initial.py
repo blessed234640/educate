@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('courses', '0006_alter_course_overview_alter_video_url_wishlist'),
+        ('courses', '0005_alter_video_url'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

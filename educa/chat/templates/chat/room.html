@@ -11,7 +11,7 @@
         margin: 0 auto;
         padding: 0 20px;
     }
-    
+
     /* Шапка чата */
     .chat-header {
         background: linear-gradient(135deg, #0d6efd, #6610f2);
@@ -23,9 +23,9 @@
         overflow: hidden;
         margin-bottom: 30px;
     }
-    
+
     .chat-header::before {
-        content: '';
+        content: "";
         position: absolute;
         top: -50px;
         right: -50px;
@@ -34,9 +34,9 @@
         background: rgba(255, 255, 255, 0.1);
         border-radius: 50%;
     }
-    
+
     .chat-header::after {
-        content: '';
+        content: "";
         position: absolute;
         bottom: -30px;
         left: -30px;
@@ -45,7 +45,7 @@
         background: rgba(255, 255, 255, 0.05);
         border-radius: 50%;
     }
-    
+
     .chat-header h1 {
         font-size: 2.5rem;
         font-weight: 700;
@@ -53,14 +53,14 @@
         position: relative;
         z-index: 1;
     }
-    
+
     .chat-header .course-title {
         font-size: 1.2rem;
         opacity: 0.9;
         position: relative;
         z-index: 1;
     }
-    
+
     /* Окно сообщений */
     #chat {
         background: white;
@@ -76,7 +76,7 @@
         border: 1px solid #e0e0e0;
         margin-bottom: 20px;
     }
-    
+
     /* Стили сообщений */
     .message {
         padding: 15px 20px;
@@ -86,32 +86,32 @@
         animation: fadeIn 0.3s ease;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
-    
+
     @keyframes fadeIn {
-        from { 
-            opacity: 0; 
-            transform: translateY(10px); 
+        from {
+            opacity: 0;
+            transform: translateY(10px);
         }
-        to { 
-            opacity: 1; 
-            transform: translateY(0); 
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
     }
-    
+
     .message.me {
         background: linear-gradient(135deg, #0d6efd, #6610f2);
         color: white;
         margin-left: auto;
         border-bottom-right-radius: 5px;
     }
-    
+
     .message.other {
         background: #f8f9fa;
         color: #212529;
         margin-right: auto;
         border-bottom-left-radius: 5px;
     }
-    
+
     /* Заголовок сообщения (ник + время) */
     .message-header {
         display: flex;
@@ -119,60 +119,60 @@
         justify-content: space-between;
         margin-bottom: 8px;
     }
-    
+
     .message strong {
         font-size: 14px;
         font-weight: 600;
         display: inline-block;
     }
-    
+
     .message.me strong {
         color: rgba(255, 255, 255, 0.95);
     }
-    
+
     .message.other strong {
         color: #0d6efd;
     }
-    
+
     .message .date {
         font-size: 11px;
         opacity: 0.8;
         font-weight: normal;
         margin-left: 10px;
     }
-    
+
     .message.me .date {
         color: rgba(255, 255, 255, 0.8);
     }
-    
+
     .message.other .date {
         color: #6c757d;
     }
-    
+
     /* Контент сообщения */
     .message-content {
         line-height: 1.4;
         word-wrap: break-word;
     }
-    
+
     /* Пустой чат */
     .empty-chat {
         text-align: center;
         padding: 60px 20px;
         color: #6c757d;
     }
-    
+
     .empty-chat-icon {
         font-size: 64px;
         margin-bottom: 20px;
         opacity: 0.3;
     }
-    
+
     .empty-chat h3 {
         color: #495057;
         margin-bottom: 10px;
     }
-    
+
     /* Поле ввода сообщений */
     #chat-input {
         background: white;
@@ -184,7 +184,7 @@
         align-items: center;
         border: 1px solid #e0e0e0;
     }
-    
+
     #chat-message-input {
         flex: 1;
         padding: 15px 20px;
@@ -195,18 +195,18 @@
         background: #f8f9fa;
         color: #212529;
     }
-    
+
     #chat-message-input:focus {
         outline: none;
         border-color: #0d6efd;
         background: white;
         box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
     }
-    
+
     #chat-message-input::placeholder {
         color: #6c757d;
     }
-    
+
     #chat-message-submit {
         background: linear-gradient(135deg, #28a745, #20c997);
         color: white;
@@ -223,71 +223,71 @@
         box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
         white-space: nowrap;
     }
-    
+
     #chat-message-submit:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
     }
-    
+
     #chat-message-submit:active {
         transform: translateY(0);
     }
-    
+
     /* Адаптивность */
     @media (max-width: 768px) {
         .chat-header {
             padding: 30px;
         }
-        
+
         .chat-header h1 {
             font-size: 2rem;
         }
-        
+
         #chat {
             padding: 20px;
             min-height: 400px;
             max-height: 450px;
         }
-        
+
         #chat-input {
             flex-direction: column;
             padding: 20px;
         }
-        
+
         #chat-message-input,
         #chat-message-submit {
             width: 100%;
         }
-        
+
         .message {
             max-width: 85%;
         }
-        
+
         .message-header {
             flex-wrap: wrap;
         }
     }
-    
+
     @media (max-width: 576px) {
         .chat-header {
             padding: 25px 20px;
         }
-        
+
         .chat-header h1 {
             font-size: 1.75rem;
         }
-        
+
         #chat {
             padding: 15px;
             min-height: 350px;
             max-height: 400px;
         }
-        
+
         .message {
             padding: 12px 15px;
             max-width: 90%;
         }
-        
+
         .message .date {
             font-size: 10px;
             margin-left: 5px;
@@ -300,13 +300,13 @@
 <div class="chat-container">
     <!-- Шапка чата -->
     <div class="chat-header">
-        <div style="font-size: 64px; margin-bottom: 20px;">
+        <div style="font-size: 64px; margin-bottom: 20px">
             <i class="fas fa-comments"></i>
         </div>
         <h1>Course Chat Room</h1>
         <div class="course-title">{{ course.title }}</div>
     </div>
-    
+
     <!-- Окно сообщений -->
     <div id="chat">
         {% for message in latest_messages %}
@@ -329,10 +329,14 @@
         </div>
         {% endfor %}
     </div>
-    
+
     <!-- Поле ввода сообщений -->
     <div id="chat-input">
-        <input id="chat-message-input" type="text" placeholder="Type your message here...">
+        <input
+            id="chat-message-input"
+            type="text"
+            placeholder="Type your message here..."
+        />
         <button id="chat-message-submit" type="button">
             <i class="fas fa-paper-plane"></i> Send
         </button>
@@ -347,17 +351,15 @@
 
 {% block domready %}
 console.log('DOM is ready!');
-
 const courseId = JSON.parse(document.getElementById('course-id').textContent);
 const requestUser = JSON.parse(document.getElementById('request-user').textContent);
-
 console.log('Course ID:', courseId);
 console.log('User:', requestUser);
 
-const url = 'ws://' + window.location.host + '/ws/chat/room/' + courseId + '/';
+const url = 'wss://' + window.location.host + '/ws/chat/room/' + courseId + '/';
 console.log('WebSocket URL:', url);
-
 const chatSocket = new WebSocket(url);
+
 const chatElement = document.getElementById('chat');
 const inputElement = document.getElementById('chat-message-input');
 const submitButton = document.getElementById('chat-message-submit');
@@ -368,18 +370,16 @@ chatSocket.onopen = function(e) {
 
 chatSocket.onmessage = function(e) {
     console.log('Message received:', e.data);
-    
     try {
         const data = JSON.parse(e.data);
-        
         // Проверяем, что это chat_message
         if (data.type === 'chat_message') {
             // Форматируем дату
             const date = new Date(data.datetime);
             const timeString = date.toLocaleTimeString([], { 
                 hour: '2-digit', 
-                minute: '2-digit',
-                hour12: false  // 24-часовой формат
+                minute: '2-digit', 
+                hour12: false 
             });
             
             // Определяем класс сообщения
@@ -395,9 +395,7 @@ chatSocket.onmessage = function(e) {
                     <strong>${username}</strong>
                     <span class="date">${timeString}</span>
                 </div>
-                <div class="message-content">
-                    ${data.message}
-                </div>
+                <div class="message-content">${data.message}</div>
             `;
             
             // Добавляем сообщение в чат
@@ -428,12 +426,10 @@ chatSocket.onclose = function(e) {
 // Функция отправки сообщения
 function sendMessage() {
     const message = inputElement.value.trim();
-    
     if (message && chatSocket.readyState === WebSocket.OPEN) {
         // Отправляем сообщение через WebSocket
         chatSocket.send(JSON.stringify({message: message}));
         console.log('Message sent:', message);
-        
         // Очищаем поле ввода
         inputElement.value = '';
         inputElement.focus();
@@ -458,7 +454,6 @@ inputElement.addEventListener('keypress', function(event) {
 
 // Фокус на поле ввода
 inputElement.focus();
-
 // Автопрокрутка при загрузке
 chatElement.scrollTop = chatElement.scrollHeight;
 {% endblock %}

@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block extra_css %}
-<link href="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.css" rel="stylesheet">
+{{ form.media }}  <!-- Загрузит CSS и JS для TinyMCE -->
 <style>
     .course-form-container {
         max-width: 900px;
@@ -120,15 +120,14 @@
         margin-bottom: 5px;
     }
     
-    /* Стили для CKEditor */
-    .cke_chrome {
+    /* Стили для TinyMCE */
+    .tox-tinymce {
         border-radius: var(--border-radius-sm) !important;
         border: 2px solid var(--gray-300) !important;
-        box-shadow: none !important;
         transition: var(--transition) !important;
     }
     
-    .cke_focus {
+    .tox-tinymce.tox-tinymce--focus {
         border-color: var(--primary-color) !important;
         box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15) !important;
     }
@@ -295,6 +294,7 @@
                     <label for="{{ form.overview.id_for_label }}" class="form-label">
                         <i class="fas fa-file-alt me-1"></i>Course Description *
                     </label>
+                    <!-- TinyMCE автоматически заменит этот textarea на редактор -->
                     <textarea name="{{ form.overview.name }}" 
                               id="{{ form.overview.id_for_label }}" 
                               class="form-control" 
@@ -310,7 +310,7 @@
                         Describe what students will learn in this course.
                     </div>
                     
-                    <!-- Fallback сообщение если CKEditor не загрузится -->
+                    <!-- Fallback сообщение если TinyMCE не загрузится -->
                     <div id="editorFallback" class="editor-fallback alert alert-warning mt-2">
                         <i class="fas fa-exclamation-triangle me-2"></i>
                         Rich text editor not available. You can use basic HTML tags like &lt;strong&gt;, &lt;em&gt;, &lt;ul&gt;, &lt;li&gt;, etc.
@@ -410,65 +410,51 @@
     </div>
 </div>
 
-<script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
 <script>
     let currentSection = 1;
-    let ckeditorInitialized = false;
+    let editorInitialized = false;
     
-    // Инициализация CKEditor с улучшенной обработкой ошибок
-    function initCKEditor() {
-        try {
-            const overviewField = document.getElementById('{{ form.overview.id_for_label }}');
-            if (!overviewField) {
-                console.error('CKEditor: Textarea not found');
-                document.getElementById('editorFallback').style.display = 'block';
-                return;
-            }
+    // Ждем полной загрузки страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        updateAllPreviews();
+        
+        // Проверяем загрузку TinyMCE
+        setTimeout(checkEditorLoaded, 500);
+        
+        // Проверяем данные в форме (при редактировании)
+        const overviewTextarea = document.getElementById('{{ form.overview.id_for_label }}');
+        if (overviewTextarea && overviewTextarea.value) {
+            setTimeout(updatePreview, 1000);
+        }
+    });
+    
+    // Проверка загрузки TinyMCE
+    function checkEditorLoaded() {
+        const editorContainer = document.querySelector('.tox-tinymce');
+        if (editorContainer) {
+            console.log('TinyMCE успешно загружен');
+            editorInitialized = true;
             
-            // Проверяем, загружен ли CKEDITOR
-            if (typeof CKEDITOR === 'undefined') {
-                console.error('CKEditor: Library not loaded');
-                document.getElementById('editorFallback').style.display = 'block';
-                return;
-            }
-            
-            CKEDITOR.replace('{{ form.overview.id_for_label }}', {
-                height: 200,
-                toolbar: [
-                    ['Bold', 'Italic', 'Underline', 'Strike'],
-                    ['NumberedList', 'BulletedList'],
-                    ['Link', 'Unlink'],
-                    ['RemoveFormat', 'Source']
-                ],
-                // Предотвращаем автоматические теги
-                autoParagraph: false,
-                // Более строгая очистка
-                allowedContent: 'p br strong em u ol ul li a[href]',
-                // Убираем лишние теги
-                fillEmptyBlocks: false,
-                // Базовые настройки
-                language: 'en',
-                removePlugins: 'elementspath',
-                resize_enabled: true
-            });
-            
-            // Ждем полной загрузки редактора
-            CKEDITOR.instances['{{ form.overview.id_for_label }}'].on('instanceReady', function() {
-                ckeditorInitialized = true;
-                console.log('CKEditor initialized successfully');
-                
-                // Обновление превью при изменении
-                this.on('change', function() {
-                    updatePreview();
-                });
-                
-                // Инициализируем превью
-                updatePreview();
-            });
-            
-        } catch (error) {
-            console.error('CKEditor initialization error:', error);
+            // Настройка обработчика изменений для TinyMCE
+            setupTinyMCEChangeListener();
+        } else {
+            console.warn('TinyMCE не загрузился, показываем fallback');
             document.getElementById('editorFallback').style.display = 'block';
+        }
+    }
+    
+    // Настройка обработчика изменений для TinyMCE
+    function setupTinyMCEChangeListener() {
+        if (typeof tinymce !== 'undefined' && tinymce.editors.length > 0) {
+            const editor = tinymce.editors[0];
+            editor.on('change', updatePreview);
+            editor.on('keyup', updatePreview);
+        } else {
+            // Fallback: слушаем изменения в textarea
+            const textarea = document.getElementById('{{ form.overview.id_for_label }}');
+            if (textarea) {
+                textarea.addEventListener('input', updatePreview);
+            }
         }
     }
     
@@ -476,17 +462,23 @@
     function updatePreview() {
         try {
             let content = '';
-            if (ckeditorInitialized && CKEDITOR.instances['{{ form.overview.id_for_label }}']) {
-                content = CKEDITOR.instances['{{ form.overview.id_for_label }}'].getData();
+            
+            if (editorInitialized && typeof tinymce !== 'undefined' && tinymce.editors.length > 0) {
+                // Получаем контент из TinyMCE
+                content = tinymce.editors[0].getContent();
             } else {
-                const textarea = document.getElementById('{{ form.overview.id_for_label }}');
-                if (textarea) {
-                    content = textarea.value;
-                    // Простая замена переносов строк на теги <br>
-                    content = content.replace(/\n/g, '<br>');
+                // Fallback: получаем из textarea
+                const overviewTextarea = document.getElementById('{{ form.overview.id_for_label }}');
+                if (overviewTextarea) {
+                    content = overviewTextarea.value;
+                    // Простая замена переносов строк
+                    if (content && !content.includes('<') && content.includes('\n')) {
+                        content = content.replace(/\n/g, '<br>');
+                    }
                 }
             }
             
+            // Обновляем превью
             const preview1 = document.getElementById('overviewPreview');
             const preview2 = document.getElementById('finalPreview');
             
@@ -501,148 +493,58 @@
         }
     }
     
-    // Инициализация при загрузке страницы
-    document.addEventListener('DOMContentLoaded', function() {
-        initCKEditor();
-        updateAllPreviews();
-        
-        // Проверяем, есть ли уже данные в форме (при редактировании)
-        const overviewTextarea = document.getElementById('{{ form.overview.id_for_label }}');
-        if (overviewTextarea && overviewTextarea.value) {
-            // Обновляем превью с существующими данными
-            setTimeout(updatePreview, 1000);
-        }
-    });
-    
     function nextSection() {
-        if (currentSection < 3) {
-            if (validateSection(currentSection)) {
-                // Скрываем текущую секцию
-                document.getElementById(`section${currentSection}`).style.display = 'none';
-                document.getElementById(`step${currentSection}Number`).classList.remove('active');
-                document.getElementById(`step${currentSection}Label`).classList.remove('active');
-                
-                // Показываем следующую секцию
-                currentSection++;
-                document.getElementById(`section${currentSection}`).style.display = 'block';
-                document.getElementById(`step${currentSection}Number`).classList.add('active');
-                document.getElementById(`step${currentSection}Label`).classList.add('active');
-                
-                // Обновляем все превью
-                updateAllPreviews();
-                
-                // Обновляем скрытое поле с текущей секцией
-                const sectionField = document.getElementById('current_section');
-                if (sectionField) {
-                    sectionField.value = currentSection;
-                }
-            }
+        if (currentSection < 3 && validateSection(currentSection)) {
+            changeSection(currentSection + 1);
         }
     }
     
     function prevSection() {
         if (currentSection > 1) {
-            // Скрываем текущую секцию
-            document.getElementById(`section${currentSection}`).style.display = 'none';
-            document.getElementById(`step${currentSection}Number`).classList.remove('active');
-            document.getElementById(`step${currentSection}Label`).classList.remove('active');
-            
-            // Показываем предыдущую секцию
-            currentSection--;
-            document.getElementById(`section${currentSection}`).style.display = 'block';
-            document.getElementById(`step${currentSection}Number`).classList.add('active');
-            document.getElementById(`step${currentSection}Label`).classList.add('active');
-            
-            // Обновляем скрытое поле с текущей секцией
-            const sectionField = document.getElementById('current_section');
-            if (sectionField) {
-                sectionField.value = currentSection;
-            }
+            changeSection(currentSection - 1);
         }
     }
     
-    function validateSection(sectionNum) {
-        let isValid = true;
-        const errorMessages = [];
+    function changeSection(newSection) {
+        document.getElementById(`section${currentSection}`).style.display = 'none';
+        document.getElementById(`step${currentSection}Number`).classList.remove('active');
+        document.getElementById(`step${currentSection}Label`).classList.remove('active');
         
+        currentSection = newSection;
+        document.getElementById(`section${currentSection}`).style.display = 'block';
+        document.getElementById(`step${currentSection}Number`).classList.add('active');
+        document.getElementById(`step${currentSection}Label`).classList.add('active');
+        
+        document.getElementById('current_section').value = currentSection;
+        updateAllPreviews();
+    }
+    
+    function validateSection(sectionNum) {
         if (sectionNum === 1) {
             const title = document.getElementById('{{ form.title.id_for_label }}');
             const subject = document.getElementById('{{ form.subject.id_for_label }}');
             
-            // Валидация заголовка
             if (!title.value.trim()) {
-                showError(title, 'Course title is required');
-                errorMessages.push('Please enter a course title');
-                isValid = false;
-            } else if (title.value.trim().length > 200) {
-                showError(title, 'Title is too long (max 200 characters)');
-                errorMessages.push('Title is too long (max 200 characters)');
-                isValid = false;
-            } else {
-                clearError(title);
+                alert('Please enter a course title');
+                title.focus();
+                return false;
             }
-            
-            // Валидация предмета
             if (!subject.value) {
-                showError(subject, 'Please select a subject');
-                errorMessages.push('Please select a subject');
-                isValid = false;
-            } else {
-                clearError(subject);
+                alert('Please select a subject');
+                subject.focus();
+                return false;
             }
         }
-        
         if (sectionNum === 2) {
-            let overviewContent = '';
-            
-            if (ckeditorInitialized && CKEDITOR.instances['{{ form.overview.id_for_label }}']) {
-                overviewContent = CKEDITOR.instances['{{ form.overview.id_for_label }}'].getData();
-            } else {
-                const overviewField = document.getElementById('{{ form.overview.id_for_label }}');
-                overviewContent = overviewField ? overviewField.value : '';
-            }
+            const overviewField = document.getElementById('{{ form.overview.id_for_label }}');
+            let overviewContent = overviewField ? overviewField.value : '';
             
             if (!overviewContent.trim()) {
                 alert('Please provide a course description');
-                isValid = false;
+                return false;
             }
         }
-        
-        // Показываем все ошибки, если есть
-        if (errorMessages.length > 0) {
-            alert(errorMessages.join('\n'));
-        }
-        
-        return isValid;
-    }
-    
-    function showError(element, message) {
-        if (!element) return;
-        
-        element.classList.add('is-invalid');
-        element.style.borderColor = 'var(--danger-color)';
-        element.style.boxShadow = '0 0 0 3px rgba(247, 37, 133, 0.15)';
-        
-        // Удаляем старые сообщения об ошибках
-        const oldError = element.parentNode.querySelector('.invalid-feedback');
-        if (oldError) oldError.remove();
-        
-        // Добавляем новое сообщение
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'invalid-feedback d-block';
-        errorDiv.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i>${message}`;
-        element.parentNode.appendChild(errorDiv);
-    }
-    
-    function clearError(element) {
-        if (!element) return;
-        
-        element.classList.remove('is-invalid');
-        element.style.borderColor = '';
-        element.style.boxShadow = '';
-        
-        const errorDiv = element.parentNode.querySelector('.invalid-feedback');
-        if (errorDiv) errorDiv.remove();
+        return true;
     }
     
     function updateAllPreviews() {
@@ -658,11 +560,7 @@
         const previewSubject = document.getElementById('previewSubject');
         if (subjectSelect && previewSubject) {
             const selectedOption = subjectSelect.options[subjectSelect.selectedIndex];
-            if (selectedOption.text !== '---------') {
-                previewSubject.textContent = selectedOption.text;
-            } else {
-                previewSubject.textContent = 'Subject';
-            }
+            previewSubject.textContent = selectedOption.text !== '---------' ? selectedOption.text : 'Subject';
         }
         
         // Обновляем описание
@@ -673,7 +571,7 @@
     document.getElementById('{{ form.title.id_for_label }}')?.addEventListener('input', updateAllPreviews);
     document.getElementById('{{ form.subject.id_for_label }}')?.addEventListener('change', updateAllPreviews);
     
-    // Автогенерация slug из заголовка
+    // Автогенерация slug
     document.getElementById('{{ form.title.id_for_label }}')?.addEventListener('blur', function() {
         const slugField = document.getElementById('{{ form.slug.id_for_label }}');
         if (slugField && !slugField.value.trim()) {
@@ -690,9 +588,8 @@
         }
     });
     
-    // Предотвращение двойной отправки формы
+    // Обработчик отправки формы
     document.getElementById('courseForm')?.addEventListener('submit', function(e) {
-        // Проверяем подтверждение
         const confirmCheckbox = document.getElementById('confirmInfo');
         if (currentSection === 3 && confirmCheckbox && !confirmCheckbox.checked) {
             e.preventDefault();
@@ -701,27 +598,23 @@
             return;
         }
         
-        // Валидация всей формы
         if (!validateSection(1) || !validateSection(2)) {
             e.preventDefault();
             alert('Please fix all errors before submitting');
             return;
         }
         
-        // Отключаем кнопку отправки
         const submitBtn = document.getElementById('submitBtn');
         if (submitBtn) {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
         }
         
-        // Сохраняем данные из CKEditor в textarea перед отправкой
-        if (ckeditorInitialized && CKEDITOR.instances['{{ form.overview.id_for_label }}']) {
-            const content = CKEDITOR.instances['{{ form.overview.id_for_label }}'].getData();
-            const overviewField = document.getElementById('{{ form.overview.id_for_label }}');
-            if (overviewField) {
-                overviewField.value = content;
-            }
+        // TinyMCE автоматически сохраняет данные
+        // Принудительно обновляем textarea для гарантии
+        if (editorInitialized && typeof tinymce !== 'undefined' && tinymce.editors.length > 0) {
+            const editor = tinymce.editors[0];
+            editor.save();
         }
     });
 </script>

@@ -1,10 +1,10 @@
 from django import forms
 from django.forms.models import inlineformset_factory
-from ckeditor.widgets import CKEditorWidget
+from tinymce.widgets import TinyMCE
 from .models import Course, Module
 
 class CourseForm(forms.ModelForm):
-    overview = forms.CharField(widget=CKEditorWidget())
+    overview = forms.CharField(widget=TinyMCE(attrs={'cols': 80, 'rows': 20}))
     
     class Meta:
         model = Course
@@ -12,7 +12,7 @@ class CourseForm(forms.ModelForm):
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'slug': forms.TextInput(attrs={'class': 'form-control'}),
-            'subject': forms.Select(attrs={'class': 'form-control'}),
+            'subject': forms.Select(attrs={'class': 'form-select'}),
         }
 
 ModuleFormSet = inlineformset_factory(

@@ -8,11 +8,18 @@ app_name = "courses"
 router = routers.DefaultRouter()
 router.register("courses", views.CourseViewSet)
 router.register("subjects", views.SubjectViewSet)
+
 urlpatterns = [
-    # path('subjects/', views.SubjectListView.as_view(), name='subject_list'),
-    # path('subjects/<pk>/', views.SubjectDetailView.as_view(), name='subject_detail'),
     path("", include(router.urls)),
-    # path(
-    #     "courses/<pk>/enroll/", views.CourseEnrollView.as_view(), name="course_enroll"
-    # ),
+    # Progress tracking endpoints
+    path(
+        "courses/<int:course_id>/progress/",
+        views.CourseProgressAPIView.as_view(),
+        name="course_progress"
+    ),
+    path(
+        "progress/",
+        views.CourseProgressAPIView.as_view(),
+        name="all_course_progress"
+    ),
 ]

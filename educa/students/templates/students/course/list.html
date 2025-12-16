@@ -198,6 +198,33 @@
         color: white;
     }
     
+    /* Статус курса */
+    .course-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--gray-600);
+    }
+    
+    .status-badge {
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+    
+    .status-active {
+        background: rgba(40, 167, 69, 0.1);
+        color: var(--success-color);
+    }
+    
+    .status-not-started {
+        background: rgba(108, 117, 125, 0.1);
+        color: var(--gray-600);
+    }
+    
     /* Пустое состояние */
     .empty-courses {
         text-align: center;
@@ -293,6 +320,12 @@
             width: 100%;
             justify-content: center;
         }
+        
+        .course-status {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
     }
 </style>
 {% endblock %}
@@ -308,50 +341,75 @@
         <p>Continue your learning journey</p>
     </div>
     
-    {% if object_list %}
+    {% if courses_with_progress %}
     <div class="courses-grid">
-        {% for course in object_list %}
+        {% for course_data in courses_with_progress %}
         <div class="course-card">
             <div class="course-card-header">
-                <h3>{{ course.title }}</h3>
-                <span class="course-badge">{{ course.modules.count }} modules</span>
+                <h3>{{ course_data.course.title }}</h3>
+                <span class="course-badge">{{ course_data.course.modules.count }} modules</span>
             </div>
             
             <div class="course-card-body">
                 <div class="course-meta">
+                    {% if course_data.course.subject %}
                     <span>
                         <i class="fas fa-tag"></i>
-                        {{ course.subject.title }}
+                        {{ course_data.course.subject.title }}
                     </span>
+                    {% endif %}
                     <span>
                         <i class="fas fa-user-tie"></i>
-                        {{ course.owner.get_full_name|default:course.owner.username }}
+                        {{ course_data.course.owner.get_full_name|default:course_data.course.owner.username }}
                     </span>
                     <span>
                         <i class="fas fa-clock"></i>
-                        {{ course.modules.count|add:course.modules.count }} hours
+                        {% if course_data.course.total_time %}
+                            {{ course_data.course.total_time }} hours
+                        {% else %}
+                            {{ course_data.course.modules.count|default:"0" }} hours
+                        {% endif %}
                     </span>
                 </div>
                 
                 <p class="course-description">
-                    {{ course.overview|striptags|truncatewords:30 }}
+                    {{ course_data.course.overview|striptags|truncatewords:30 }}
                 </p>
                 
-                <!-- Прогресс курса (можно добавить реальный прогресс позже) -->
+                <!-- Статус курса -->
+                <div class="course-status">
+                    {% if course_data.progress_percentage > 0 %}
+                        <span class="status-badge status-active">
+                            <i class="fas fa-play-circle"></i> In Progress
+                        </span>
+                        <span>{{ course_data.completed_modules }}/{{ course_data.total_modules }} modules completed</span>
+                    {% else %}
+                        <span class="status-badge status-not-started">
+                            <i class="fas fa-flag"></i> Not Started
+                        </span>
+                        <span>Ready to begin</span>
+                    {% endif %}
+                </div>
+                
+                <!-- Прогресс курса -->
                 <div class="course-progress">
                     <div class="progress-text">
                         <span>Progress</span>
-                        <span>25%</span> <!-- Пример, заменить на реальные данные -->
+                        <span>{{ course_data.progress_percentage|floatformat:"0" }}%</span>
                     </div>
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: 25%"></div>
+                        <div class="progress-fill" style="width: {{ course_data.progress_percentage }}%"></div>
                     </div>
                 </div>
             </div>
             
             <div class="course-card-footer">
-                <a href="{% url 'student_course_detail' course.id %}" class="btn-access">
-                    <i class="fas fa-play-circle"></i> Continue Learning
+                <a href="{% url 'student_course_detail' course_data.course.id %}" class="btn-access">
+                    {% if course_data.progress_percentage > 0 %}
+                        <i class="fas fa-play-circle"></i> Continue Learning
+                    {% else %}
+                        <i class="fas fa-play-circle"></i> Start Learning
+                    {% endif %}
                 </a>
             </div>
         </div>

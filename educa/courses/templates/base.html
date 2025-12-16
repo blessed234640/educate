@@ -8,6 +8,235 @@
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        /* Основные стили для header - все в одну строку всегда */
+        #header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 70px;
+            overflow: hidden; /* Скрываем выходящее за пределы */
+        }
+        
+        .logo {
+            flex-shrink: 0;
+            padding-right: 15px;
+            font-size: 24px;
+            white-space: nowrap;
+        }
+        
+        .logo i {
+            font-size: 28px;
+        }
+        
+        .menu {
+            display: flex;
+            align-items: center;
+            gap: 12px; /* Уменьшил расстояние между элементами */
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+            overflow-x: auto; /* Горизонтальный скролл если не помещается */
+            -webkit-overflow-scrolling: touch; /* Плавный скролл на iOS */
+            scrollbar-width: none; /* Скрываем скроллбар в Firefox */
+            padding-bottom: 5px; /* Отступ для скролла */
+        }
+        
+        /* Скрываем скроллбар в Webkit браузерах */
+        .menu::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .menu li {
+            flex-shrink: 0;
+        }
+        
+        /* Кнопки - компактные */
+        .btn-sm {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            height: 34px;
+        }
+        
+        /* Имя пользователя - очень компактное */
+        .menu li:last-child span.text-white {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 0.85em;
+            height: 34px;
+            box-sizing: border-box;
+        }
+        
+        /* Иконки в кнопках */
+        .btn-sm i {
+            font-size: 0.9em;
+        }
+        
+        /* Wishlist counter */
+        .position-relative {
+            position: relative;
+        }
+        
+        .badge {
+            font-size: 0.5rem;
+            padding: 0.15rem 0.35rem;
+            min-width: 16px;
+        }
+        
+        /* Убираем текст в кнопках на очень маленьких экранах */
+        @media (max-width: 480px) {
+            .btn-sm span:not(.badge) {
+                display: none;
+            }
+            
+            .btn-sm {
+                padding: 6px 8px;
+                min-width: 34px;
+                justify-content: center;
+            }
+            
+            .btn-sm i {
+                margin: 0;
+            }
+            
+            /* Для имени пользователя тоже скрываем текст */
+            .menu li:last-child span.text-white span:last-child {
+                display: none;
+            }
+            
+            .menu li:last-child span.text-white {
+                max-width: 40px;
+                min-width: 40px;
+                justify-content: center;
+                padding: 5px;
+            }
+            
+            .menu li:last-child span.text-white i {
+                margin: 0;
+            }
+        }
+        
+        /* На средних экранах показываем только иконки */
+        @media (max-width: 768px) and (min-width: 481px) {
+            .btn-sm span:not(.badge) {
+                display: none;
+            }
+            
+            .btn-sm {
+                padding: 6px 10px;
+                min-width: 40px;
+                justify-content: center;
+            }
+            
+            .menu li:last-child span.text-white span:last-child {
+                display: none;
+            }
+            
+            .menu li:last-child span.text-white {
+                max-width: 45px;
+                min-width: 45px;
+                justify-content: center;
+                padding: 5px;
+            }
+        }
+        
+        /* На больших мобильных показываем сокращенный текст */
+        @media (max-width: 992px) and (min-width: 769px) {
+            .btn-sm {
+                font-size: 0.75rem;
+                padding: 6px 8px;
+            }
+            
+            .menu li:last-child span.text-white {
+                max-width: 120px;
+                font-size: 0.8em;
+            }
+        }
+        
+        /* Для десктопов - полный текст */
+        @media (min-width: 993px) {
+            .btn-sm {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+            
+            .menu li:last-child span.text-white {
+                max-width: 180px;
+                font-size: 0.9em;
+            }
+            
+            .menu {
+                gap: 15px;
+            }
+        }
+        
+        /* Логотип адаптируется */
+        @media (max-width: 768px) {
+            .logo span {
+                display: none; /* Скрываем текст Educa на мобильных */
+            }
+            
+            .logo {
+                padding-right: 10px;
+                min-width: 40px;
+            }
+            
+            .logo i {
+                font-size: 24px;
+            }
+        }
+        
+        /* Улучшения для кнопок */
+        .btn-sm {
+            transition: all 0.2s ease;
+        }
+        
+        .btn-sm:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Плавный скролл для меню на touch устройствах */
+        @media (hover: none) and (pointer: coarse) {
+            .menu {
+                -webkit-overflow-scrolling: touch;
+                scroll-behavior: smooth;
+            }
+        }
+        
+        /* Индикатор что есть скролл */
+        .menu:after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 20px;
+            background: linear-gradient(to right, transparent, var(--primary-color));
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .menu.scrollable:after {
+            opacity: 0.1;
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -17,14 +246,14 @@
                 <i class="fas fa-graduation-cap"></i>
                 <span>Educa</span>
             </a>
-            <ul class="menu">
+            <ul class="menu" id="headerMenu">
                 {% if request.user.is_authenticated %}
                     <li>
                         <form action="{% url "logout" %}" method="post" class="d-inline">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-sm btn-secondary">
                                 <i class="fas fa-sign-out-alt"></i>
-                                Sign Out
+                                <span>Sign Out</span>
                             </button>
                         </form>
                     </li>
@@ -32,10 +261,10 @@
                     <!-- Wishlist link -->
                     <li>
                         <a href="{% url 'wishlist_list' %}" class="btn btn-sm btn-secondary position-relative">
-                            <i class="fas fa-heart me-1"></i>Wishlist
+                            <i class="fas fa-heart me-1"></i>
+                            <span>Wishlist</span>
                             <span id="wishlistCounter" 
-                                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                  style="font-size: 0.6rem; padding: 0.2rem 0.4rem;">
+                                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                 {% if request.user.is_authenticated %}
                                     {{ request.user.wishlists.count|default:0 }}
                                 {% else %}
@@ -49,7 +278,7 @@
                     <li>
                         <a href="{% url "manage_course_list" %}" class="btn btn-sm btn-secondary">
                             <i class="fas fa-cog"></i>
-                            Manage Courses
+                            <span>Manage Courses</span>
                         </a>
                     </li>
                     {% endif %}
@@ -57,27 +286,27 @@
                     <li>
                         <a href="{% url "student_course_list" %}" class="btn btn-sm btn-secondary">
                             <i class="fas fa-book"></i>
-                            My Courses
+                            <span>My Courses</span>
                         </a>
                     </li>
                     
                     <li>
                         <span class="text-white d-flex align-items-center gap-2">
                             <i class="fas fa-user-circle"></i>
-                            {{ request.user.get_full_name|default:request.user.username }}
+                            <span>{{ request.user.get_full_name|default:request.user.username }}</span>
                         </span>
                     </li>
                 {% else %}
                     <li>
                         <a href="{% url "login" %}" class="btn btn-sm btn-secondary">
                             <i class="fas fa-sign-in-alt"></i>
-                            Sign In
+                            <span>Sign In</span>
                         </a>
                     </li>
                     <li>
                         <a href="{% url "student_registration" %}" class="btn btn-sm btn-primary">
                             <i class="fas fa-user-plus"></i>
-                            Sign Up
+                            <span>Sign Up</span>
                         </a>
                     </li>
                 {% endif %}
@@ -135,6 +364,21 @@
                     }
                 });
             });
+            
+            // Проверяем скролл в меню header
+            const menu = document.getElementById('headerMenu');
+            if (menu) {
+                const checkScroll = () => {
+                    if (menu.scrollWidth > menu.clientWidth) {
+                        menu.classList.add('scrollable');
+                    } else {
+                        menu.classList.remove('scrollable');
+                    }
+                };
+                
+                checkScroll();
+                window.addEventListener('resize', checkScroll);
+            }
         });
 {% block domready %}
 {% endblock %}

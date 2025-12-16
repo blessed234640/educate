@@ -12,45 +12,56 @@
     
     .module-form-card {
         background: white;
-        border-radius: var(--border-radius);
-        box-shadow: var(--shadow-md);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         padding: 0;
         border: 1px solid var(--gray-200);
-        margin-bottom: 25px;
+        margin-bottom: 15px;
         overflow: hidden;
-        transition: var(--transition);
+        transition: all 0.3s ease;
     }
     
     .module-form-card:hover {
-        box-shadow: var(--shadow-lg);
-        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
     }
     
     .module-header {
         background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(67, 97, 238, 0.05));
-        padding: 20px 25px;
+        padding: 12px 15px;
         border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .module-header-top {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        width: 100%;
     }
     
     .module-number {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
         background: var(--primary-color);
         color: white;
         border-radius: 50%;
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 600;
-        margin-right: 15px;
+        margin-right: 10px;
+    }
+    
+    .module-title-preview {
+        font-size: 13px;
+        padding: 5px 0 0;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        margin-top: 8px;
     }
     
     .module-body {
-        padding: 25px;
+        padding: 15px;
     }
     
     .formset-total-form {
@@ -60,8 +71,9 @@
     .drag-handle-module {
         cursor: move;
         color: var(--gray-400);
-        padding: 10px;
-        font-size: 18px;
+        padding: 8px;
+        font-size: 16px;
+        margin-right: 5px;
     }
     
     .delete-module-btn {
@@ -69,9 +81,14 @@
         border: none;
         color: var(--danger-color);
         cursor: pointer;
-        padding: 5px;
-        border-radius: 5px;
-        transition: var(--transition);
+        padding: 6px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .delete-module-btn:hover {
@@ -80,12 +97,12 @@
     
     .add-module-section {
         text-align: center;
-        padding: 40px;
+        padding: 30px 15px;
         border: 2px dashed var(--gray-300);
-        border-radius: var(--border-radius);
+        border-radius: 12px;
         background: var(--gray-100);
-        margin: 30px 0;
-        transition: var(--transition);
+        margin: 20px 0;
+        transition: all 0.3s ease;
     }
     
     .add-module-section:hover {
@@ -95,48 +112,231 @@
     
     .empty-formset {
         text-align: center;
-        padding: 60px 20px;
+        padding: 40px 15px;
         color: var(--gray-500);
     }
     
     .empty-formset-icon {
-        font-size: 64px;
-        margin-bottom: 20px;
+        font-size: 48px;
+        margin-bottom: 15px;
         opacity: 0.5;
     }
     
-    .form-actions {
+    .form-actions.desktop-only {
         position: sticky;
         bottom: 0;
         background: white;
-        padding: 20px 0;
+        padding: 15px 0;
         border-top: 1px solid var(--gray-200);
-        margin-top: 40px;
+        margin-top: 30px;
         box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .mobile-form-actions {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        padding: 12px 15px;
+        border-top: 1px solid var(--gray-200);
+        box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+        z-index: 1000;
+    }
+    
+    .mobile-action-buttons {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .mobile-action-buttons .btn {
+        flex: 1;
+        min-width: 0;
+        padding: 12px 8px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    
+    .page-header {
+        padding-bottom: 80px;
     }
     
     .module-count-badge {
         display: inline-flex;
         align-items: center;
-        padding: 8px 16px;
+        padding: 6px 12px;
         background: var(--primary-color);
         color: white;
         border-radius: 20px;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 600;
     }
     
     .rich-editor-module {
-        min-height: 100px;
-        border: 2px solid var(--gray-300);
-        border-radius: var(--border-radius-sm);
-        padding: 15px;
+        min-height: 80px;
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        padding: 12px;
         background: white;
+        font-size: 14px;
     }
     
     .rich-editor-module:focus {
         outline: none;
         border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.1);
+    }
+    
+    .alert-info {
+        border-radius: 10px;
+        padding: 15px;
+        font-size: 14px;
+    }
+    
+    .alert-info .fas {
+        font-size: 18px;
+    }
+    
+    /* Мобильные стили */
+    @media (max-width: 768px) {
+        .container {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+        
+        .page-header h1 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+        
+        .form-actions.desktop-only {
+            display: none;
+        }
+        
+        .mobile-form-actions {
+            display: block;
+        }
+        
+        .alert-info ul {
+            margin-bottom: 0;
+            padding-left: 15px;
+        }
+        
+        .alert-info li {
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        
+        .alert-info .h6 {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .module-form-card {
+            margin-bottom: 12px;
+        }
+        
+        .module-header {
+            padding: 12px;
+        }
+        
+        .module-body {
+            padding: 15px 12px;
+        }
+        
+        .form-control, .rich-editor-module {
+            font-size: 14px;
+            padding: 10px;
+        }
+        
+        .form-label {
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+        
+        .form-text {
+            font-size: 12px;
+        }
+        
+        .page-header .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        .add-module-section {
+            padding: 25px 12px;
+            margin: 15px 0;
+        }
+        
+        .add-module-section .fa-3x {
+            font-size: 2rem;
+        }
+        
+        .add-module-section h4 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .add-module-section p {
+            font-size: 13px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .module-header-top h3 {
+            font-size: 14px;
+        }
+        
+        .mobile-action-buttons .btn span {
+            display: none;
+        }
+        
+        .mobile-action-buttons .btn {
+            padding: 12px 5px;
+        }
+        
+        .page-header .d-flex {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+    }
+    
+    @media (min-width: 769px) {
+        .mobile-form-actions {
+            display: none;
+        }
+        
+        .form-actions.desktop-only {
+            display: flex;
+        }
+        
+        .module-body {
+            padding: 20px;
+        }
+        
+        .module-header {
+            padding: 15px 20px;
+        }
+    }
+    
+    /* Плавная анимация для добавления модулей */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .new-module-animation {
+        animation: slideIn 0.3s ease-out;
     }
 </style>
 {% endblock %}
@@ -162,7 +362,7 @@
             <div class="text-end">
                 <div class="module-count-badge">
                     <i class="fas fa-layer-group me-2"></i>
-                    <span id="moduleCount">0</span> Modules
+                    <span id="moduleCount">{{ formset|length }}</span> Modules
                 </div>
             </div>
         </div>
@@ -190,22 +390,30 @@
             
             <div id="formset-container">
                 {% for form in formset %}
+                {% if form.title.value or not forloop.last and forloop.counter <= formset|length %}
                 <div class="module-form-card" data-index="{{ forloop.counter0 }}">
                     <div class="module-header">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-arrows-alt drag-handle-module"></i>
-                            <div class="module-number">{{ forloop.counter }}</div>
-                            <h3 class="h5 mb-0">Module {{ forloop.counter }}</h3>
+                        <div class="module-header-top">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-arrows-alt drag-handle-module"></i>
+                                <div class="module-number">{{ forloop.counter }}</div>
+                                <h3 class="h5 mb-0">Module {{ forloop.counter }}</h3>
+                            </div>
+                            <div>
+                                {{ form.DELETE }}
+                                <button type="button" class="delete-module-btn" 
+                                        onclick="confirmDeleteModule(this)" 
+                                        title="Delete this module">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                                {{ form.id }}
+                            </div>
                         </div>
-                        <div>
-                            {{ form.DELETE }}
-                            <button type="button" class="delete-module-btn" 
-                                    onclick="confirmDeleteModule(this)" 
-                                    title="Delete this module">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                            {{ form.id }}
+                        {% if form.title.value %}
+                        <div class="module-title-preview mt-2">
+                            <small class="text-muted">{{ form.title.value|truncatechars:50 }}</small>
                         </div>
+                        {% endif %}
                     </div>
                     
                     <div class="module-body">
@@ -245,6 +453,7 @@
                         {% endif %}
                     </div>
                 </div>
+                {% endif %}
                 {% empty %}
                 <div class="empty-formset">
                     <div class="empty-formset-icon">
@@ -267,7 +476,8 @@
                 <p class="text-muted mb-0">Click to add another module to your course</p>
             </div>
             
-            <div class="form-actions">
+            <!-- Десктопные кнопки действий -->
+            <div class="form-actions desktop-only">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <a href="{% url 'manage_course_list' %}" class="btn btn-outline-secondary">
@@ -288,9 +498,29 @@
     </div>
 </div>
 
+<!-- Мобильные кнопки действий -->
+<div class="mobile-form-actions">
+    <div class="container">
+        <div class="mobile-action-buttons">
+            <button type="button" class="btn btn-outline-primary" onclick="addNewModule()">
+                <i class="fas fa-plus"></i>
+                <span class="d-none d-sm-inline">Add</span>
+            </button>
+            <a href="{% url 'manage_course_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-times"></i>
+                <span class="d-none d-sm-inline">Cancel</span>
+            </a>
+            <button type="submit" form="moduleFormset" class="btn btn-success">
+                <i class="fas fa-save"></i>
+                <span class="d-none d-sm-inline">Save</span>
+            </button>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 <script>
-    let formCount = {{ formset.total_form_count }};
+    let formCount = {{ formset|length }};
     let maxForms = {{ formset.max_num }};
     
     // Update module count
@@ -327,22 +557,24 @@
         
         // Create new module card
         const newCard = document.createElement('div');
-        newCard.className = 'module-form-card';
+        newCard.className = 'module-form-card new-module-animation';
         newCard.setAttribute('data-index', formCount);
         newCard.innerHTML = `
             <div class="module-header">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-arrows-alt drag-handle-module"></i>
-                    <div class="module-number">${formCount + 1}</div>
-                    <h3 class="h5 mb-0">New Module</h3>
-                </div>
-                <div>
-                    <input type="checkbox" name="module_set-${formCount}-DELETE" id="id_module_set-${formCount}-DELETE">
-                    <button type="button" class="delete-module-btn" 
-                            onclick="confirmDeleteModule(this)"
-                            title="Delete this module">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                <div class="module-header-top">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-arrows-alt drag-handle-module"></i>
+                        <div class="module-number">${formCount + 1}</div>
+                        <h3 class="h5 mb-0">New Module</h3>
+                    </div>
+                    <div>
+                        <input type="checkbox" name="module_set-${formCount}-DELETE" id="id_module_set-${formCount}-DELETE">
+                        <button type="button" class="delete-module-btn" 
+                                onclick="confirmDeleteModule(this)"
+                                title="Delete this module">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="module-body">
@@ -359,15 +591,21 @@
         formCount++;
         updateModuleCount();
         
-        // Animate new module
-        newCard.style.opacity = '0';
-        newCard.style.transform = 'translateY(20px)';
-        
+        // Auto-focus на поле заголовка
         setTimeout(() => {
-            newCard.style.transition = 'all 0.3s ease';
-            newCard.style.opacity = '1';
-            newCard.style.transform = 'translateY(0)';
-        }, 10);
+            const titleInput = newCard.querySelector('input[id$="-title"]');
+            if (titleInput) {
+                titleInput.focus();
+            }
+        }, 100);
+        
+        // Прокрутка к новому модулю
+        setTimeout(() => {
+            newCard.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+        }, 150);
         
         // Initialize rich editor
         const editor = newCard.querySelector('.rich-editor-module');
@@ -394,16 +632,29 @@
             deleteCheckbox.checked = true;
             card.style.opacity = '0.5';
             card.style.pointerEvents = 'none';
+            card.querySelector('.delete-module-btn').disabled = true;
         } else {
             // New module - remove immediately
+            card.style.transition = 'all 0.3s ease';
             card.style.opacity = '0';
             card.style.transform = 'translateY(-20px)';
+            card.style.height = card.offsetHeight + 'px';
+            
             setTimeout(() => {
-                card.remove();
-                updateModuleCount();
-                renumberModules();
-            }, 300);
+                card.style.height = '0';
+                card.style.marginBottom = '0';
+                card.style.padding = '0';
+                card.style.overflow = 'hidden';
+                
+                setTimeout(() => {
+                    card.remove();
+                    updateModuleCount();
+                    renumberModules();
+                }, 300);
+            }, 50);
         }
+        
+        updateModuleCount();
     }
     
     // Renumber modules after deletion
@@ -411,7 +662,7 @@
         const cards = document.querySelectorAll('.module-form-card:not([style*="display: none"])');
         cards.forEach((card, index) => {
             const numberElement = card.querySelector('.module-number');
-            const titleElement = card.querySelector('.module-header h3');
+            const titleElement = card.querySelector('.module-header-top h3');
             
             if (numberElement) {
                 numberElement.textContent = index + 1;
@@ -455,6 +706,8 @@
             new Sortable(formsetContainer, {
                 animation: 150,
                 handle: '.drag-handle-module',
+                ghostClass: 'sortable-ghost',
+                dragClass: 'sortable-drag',
                 onEnd: function() {
                     renumberModules();
                 }
@@ -479,9 +732,13 @@
             
             document.querySelectorAll('.module-form-card:not([style*="display: none"])').forEach(card => {
                 const titleInput = card.querySelector('input[id$="-title"]');
-                if (titleInput && !titleInput.value.trim()) {
+                const deleteCheckbox = card.querySelector('input[type="checkbox"][id$="-DELETE"]');
+                
+                // Проверяем только неудаленные модули
+                if (titleInput && !deleteCheckbox.checked && !titleInput.value.trim()) {
                     isValid = false;
                     titleInput.style.borderColor = 'var(--danger-color)';
+                    titleInput.style.boxShadow = '0 0 0 2px rgba(247, 37, 133, 0.1)';
                     errorMessages.push('Module titles are required');
                 }
             });
@@ -491,6 +748,22 @@
                 alert('Please fill in all required module titles.');
             }
         });
+        
+        // Mobile specific improvements
+        if (window.innerWidth <= 768) {
+            // Make drag handles larger on mobile
+            document.querySelectorAll('.drag-handle-module').forEach(handle => {
+                handle.style.padding = '12px';
+                handle.style.fontSize = '18px';
+            });
+        }
+    });
+    
+    // Handle mobile back button
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            location.reload();
+        }
     });
 </script>
 
@@ -503,7 +776,7 @@
             </label>
             <input type="text" name="module_set-__prefix__-title" 
                    class="form-control" id="id_module_set-__prefix__-title"
-                   maxlength="200" required>
+                   maxlength="200" required placeholder="Enter module title">
         </div>
         
         <div class="col-md-12">
@@ -512,7 +785,8 @@
             </label>
             <div class="rich-editor-module" 
                  contenteditable="true"
-                 oninput="updateTextarea(this, 'id_module_set-__prefix__-description')">
+                 oninput="updateTextarea(this, 'id_module_set-__prefix__-description')"
+                 placeholder="Describe what students will learn in this module...">
             </div>
             <textarea name="module_set-__prefix__-description" 
                      id="id_module_set-__prefix__-description" 

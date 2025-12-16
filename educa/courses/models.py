@@ -5,7 +5,8 @@ from django.db import models
 from django.template.loader import render_to_string
 from tinymce.models import HTMLField
 from .fields import OrderField
-
+from django.utils import timezone
+import json
 
 class Subject(models.Model):
     title = models.CharField(max_length=200)
@@ -141,3 +142,72 @@ class Wishlist(models.Model):
 
     def __str__(self):
         return f'{self.user.username} - {self.course.title}'
+    
+class StudentProgress(models.Model):
+    """
+    Database model to track student progress as backup to Redis.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='course_progress'
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='student_progress'
+    )
+    module = models.ForeignKey(
+        Module,
+        on_delete=models.CASCADE,
+        related_name='student_progress'
+    )
+    last_accessed = models.DateTimeField(default=timezone.now)
+    time_spent_seconds = models.IntegerField(default=0)
+    completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    data = models.JSONField(default=dict, blank=True)
+    
+    class Meta:
+        unique_together = ['user', 'course', 'module']
+        ordering = ['-last_accessed']
+        indexes = [
+            models.Index(fields=['user', 'course']),
+            models.Index(fields=['last_accessed']),
+            models.Index(fields=['completed']),
+        ]
+        verbose_name = 'Student Progress'
+        verbose_name_plural = 'Student Progress Records'
+    
+    def __str__(self):
+        status = "✓" if self.completed else "→"
+        return f'{self.user.username} - {self.course.title} - Module {self.module.order} {status}'
+    
+    def save(self, *args, **kwargs):
+        if self.completed and not self.completed_at:
+            self.completed_at = timezone.now()
+        super().save(*args, **kwargs)
+    
+    @classmethod
+    def update_progress(cls, user, course, module, completed=False, time_spent=0):
+        """Update or create progress record."""
+        from utils.redis_utils import CourseProgressTracker
+        
+        # Update Redis
+        CourseProgressTracker.set_last_module(user.id, course.id, module.id)
+        if completed:
+            CourseProgressTracker.mark_module_completed(user.id, course.id, module.id, True)
+        
+        # Update database
+        progress, created = cls.objects.update_or_create(
+            user=user,
+            course=course,
+            module=module,
+            defaults={
+                'completed': completed,
+                'time_spent_seconds': models.F('time_spent_seconds') + time_spent,
+                'last_accessed': timezone.now(),
+            }
+        )
+        
+        return progress

@@ -273,6 +273,9 @@
                     {% endif %}
                 </div>
                 
+                <!-- ВАЖНО: УДАЛИТЕ ИЛИ ЗАКОММЕНТИРУЙТЕ ЭТО ПОЛЕ EMAIL, 
+                     так как UserCreationForm его не поддерживает -->
+                <!-- 
                 <div class="form-group">
                     <label for="id_email">Email *</label>
                     <input type="email" name="email" id="id_email" 
@@ -287,15 +290,17 @@
                     </ul>
                     {% endif %}
                 </div>
+                -->
                 
+                <!-- ИЗМЕНЕНО: password -> password1 -->
                 <div class="form-group">
-                    <label for="id_password">Password *</label>
-                    <input type="password" name="password" id="id_password" 
+                    <label for="id_password1">Password *</label>
+                    <input type="password" name="password1" id="id_password1" 
                            placeholder="Create a password" 
                            required>
-                    {% if form.password.errors %}
+                    {% if form.password1.errors %}
                     <ul class="error-list">
-                        {% for error in form.password.errors %}
+                        {% for error in form.password1.errors %}
                         <li>{{ error }}</li>
                         {% endfor %}
                     </ul>

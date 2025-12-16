@@ -12,6 +12,7 @@ server {
     listen       80;
     server_name *.educaproject.com educaproject.com;
     return 301 https://$host$request_uri;
+    client_max_body_size 20M;
 }
 
 server {
@@ -25,6 +26,7 @@ server {
     location / {
         include     /etc/nginx/uwsgi_params;
         uwsgi_pass  uwsgi_app;
+        client_max_body_size 20M;
 
         # Ключевые заголовки для работы Django за прокси (CloudPub)
         uwsgi_param Host $http_host;

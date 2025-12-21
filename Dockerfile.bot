@@ -1,0 +1,24 @@
+# Dockerfile.bot
+FROM python:3.12.3-slim
+
+# Установить системные зависимости
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Копировать минимальные требования
+COPY requirements_bot.txt .
+
+# Установить только необходимые зависимости для бота
+RUN pip install --no-cache-dir -r requirements_bot.txt
+
+# Скопировать весь проект
+COPY . .
+
+# Перейти в директорию educa
+WORKDIR /app/educa
+
+# Запуск бота
+CMD ["python", "-m", "telegram_bot.bot_runner"]

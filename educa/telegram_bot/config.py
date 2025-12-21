@@ -1,12 +1,20 @@
 import os
 
 class Config:
-    # Из вашего settings.py
-    TELEGRAM_TOKEN = "8553270096:AAF6P9wlhzrtx-zcrOO77J5uUS7BoTS_d3g"
-    API_BASE_URL = "http://localhost:8000/api"
-    SITE_URL = "http://localhost:8000"  # URL вашего сайта
+    @property
+    def TELEGRAM_TOKEN(self):
+        return os.getenv('TELEGRAM_BOT_TOKEN', '')
     
-    # Параметры API
-    PAGE_SIZE = 5  # Курсов на страницу
+    @property
+    def API_BASE_URL(self):
+        return os.getenv('API_BASE_URL', 'https://ethically-polished-brill.cloudpub.ru/api')
+    
+    @property
+    def SITE_URL(self):
+        return os.getenv('SITE_URL', 'https://ethically-polished-brill.cloudpub.ru')
+    
+    # Параметры пагинации
+    PAGE_SIZE = 5
+    MAX_COURSES_PER_PAGE = 5
 
 config = Config()

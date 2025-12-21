@@ -18,3 +18,10 @@ RUN pip install -r requirements.txt
 
 # копируется джанго проект
 COPY . .
+
+# Создание пользователя
+RUN useradd -m -u 1000 botuser && chown -R botuser:botuser /code
+USER botuser
+
+# Запуск бота
+CMD ["python", "-m", "telegram_bot.main"]

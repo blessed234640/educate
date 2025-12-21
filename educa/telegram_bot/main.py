@@ -1,279 +1,211 @@
-# main.py - исправленная версия
 import asyncio
 import logging
+import sys
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
+from django.conf import settings
 
-# Инициализация
-bot = Bot(token="8553270096:AAF6P9wlhzrtx-zcrOO77J5uUS7BoTS_d3g")
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+# Инициализация бота
+TELEGRAM_TOKEN = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
+if not TELEGRAM_TOKEN:
+    logger.error("❌ Токен бота не найден в настройках!")
+    sys.exit(1)
+
+bot = Bot(token=TELEGRAM_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
-# Временное хранилище для авторизации
-user_auth = {}
+# Состояния FSM
+class AuthState(StatesGroup):
+    waiting_username = State()
+    waiting_password = State()
+
+# Временное хранилище сессий
+user_sessions = {}
 
 @dp.message(CommandStart())
 async def cmd_start(message: Message):
+    """Начало работы"""
     await message.answer(
-        "🎓 *Добро пожаловать в обучающую платформу Educa!*\n\n"
-        "Я помогу вам учиться прямо в Telegram.\n\n"
-        "Для начала работы необходимо авторизоваться.\n\n"
-        "Используйте /auth для входа или /help для помощи.",
+        "🎓 *Educa Bot*\n\n"
+        "Добро пожаловать в систему обучения!\n\n"
+        "Доступные команды:\n"
+        "/login - Вход в систему\n"
+        "/courses - Все курсы\n"
+        "/help - Помощь\n\n"
+        "Бот работает в Docker контейнере ✅",
         parse_mode="Markdown"
     )
 
-@dp.message(Command("auth"))
-async def cmd_auth(message: Message):
-    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+@dp.message(Command("login"))
+async def cmd_login(message: Message, state: FSMContext):
+    """Команда входа"""
+    await state.set_state(AuthState.waiting_username)
+    await message.answer("Введите ваш логин (email) с сайта:")
+
+@dp.message(AuthState.waiting_username)
+async def process_username(message: Message, state: FSMContext):
+    """Обработка логина"""
+    await state.update_data(username=message.text.strip())
+    await state.set_state(AuthState.waiting_password)
+    await message.answer("Введите ваш пароль:")
+
+@dp.message(AuthState.waiting_password)
+async def process_password(message: Message, state: FSMContext):
+    """Обработка пароля"""
+    from django.contrib.auth import authenticate
     
-    # Telegram не принимает localhost в URL кнопок
-    # Временное решение: показываем ссылку как текст
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(
-                text="✅ Проверить авторизацию", 
-                callback_data="check_auth"
-            )],
-            [InlineKeyboardButton(
-                text="🔐 Тестовый вход", 
-                callback_data="test_login"
-            )]
-        ]
-    )
+    user_data = await state.get_data()
+    username = user_data['username']
+    password = message.text.strip()
+    
+    user_id = message.from_user.id
+    
+    await message.answer("🔐 Проверяю учетные данные...")
+    
+    try:
+        # Аутентификация через Django
+        user = authenticate(username=username, password=password)
+        
+        if user is not None:
+            user_sessions[user_id] = {
+                "username": username,
+                "user_id": user.id,
+                "authenticated": True
+            }
+            
+            await message.answer(
+                f"✅ Вход выполнен!\n\n"
+                f"Добро пожаловать, {username}!\n\n"
+                "Теперь используйте:\n"
+                "/courses - для просмотра курсов\n"
+                "/menu - для главного меню",
+                parse_mode="Markdown"
+            )
+        else:
+            await message.answer("❌ Неверный логин или пароль")
+            
+    except Exception as e:
+        logger.error(f"Ошибка аутентификации: {e}")
+        await message.answer("❌ Ошибка при входе. Попробуйте позже.")
+    
+    await state.clear()
+
+@dp.message(Command("courses"))
+async def all_courses(message: Message):
+    """Все курсы"""
+    user_id = message.from_user.id
+    
+    if user_id not in user_sessions:
+        await message.answer("Сначала войдите: /login")
+        return
     
     await message.answer(
-        "🔐 *Авторизация*\n\n"
-        "1. Откройте в браузере:\n"
-        "   http://localhost:8000/accounts/login/\n\n"
-        "2. Авторизуйтесь на сайте\n"
-        "3. Вернитесь и нажмите 'Проверить авторизацию'\n\n"
-        "Или используйте 'Тестовый вход' для быстрого тестирования.",
-        parse_mode="Markdown",
-        reply_markup=keyboard
+        "📚 *Доступные курсы:*\n\n"
+        "1. Python для начинающих\n"
+        "2. Django Web Development\n"
+        "3. Базы данных SQL\n"
+        "4. Алгоритмы и структуры данных\n"
+        "5. Машинное обучение\n\n"
+        "В режиме разработки...",
+        parse_mode="Markdown"
     )
-
-@dp.callback_query(F.data == "check_auth")
-async def check_auth(callback: CallbackQuery):
-    user_id = callback.from_user.id
-    
-    if user_auth.get(user_id):
-        await callback.message.answer(
-            "✅ Вы авторизованы!\n\n"
-            "Теперь вам доступны все функции бота.\n\n"
-            "Используйте /menu для главного меню."
-        )
-    else:
-        await callback.message.answer(
-            "❌ Вы не авторизованы\n\n"
-            "Чтобы авторизоваться:\n"
-            "1. Откройте http://localhost:8000/accounts/login/\n"
-            "2. Войдите в свой аккаунт\n"
-            "3. Вернитесь и проверьте снова\n\n"
-            "Или используйте 'Тестовый вход' для быстрого тестирования."
-        )
-    
-    await callback.answer()
-
-@dp.callback_query(F.data == "test_login")
-async def test_login(callback: CallbackQuery):
-    user_id = callback.from_user.id
-    user_auth[user_id] = {
-        "username": f"user_{user_id}",
-        "user_id": user_id,
-        "authenticated": True
-    }
-    
-    await callback.message.answer(
-        "✅ *Тестовый вход выполнен!*\n\n"
-        "Теперь вы можете:\n"
-        "• /menu - Главное меню\n"
-        "• /courses - Все курсы\n"
-        "• /my_courses - Мои курсы\n"
-        "• /profile - Профиль\n\n"
-        "В реальной версии будет интеграция с сайтом."
-    )
-    await callback.answer()
 
 @dp.message(Command("menu"))
 async def cmd_menu(message: Message):
-    user_id = message.from_user.id
-    
-    if not user_auth.get(user_id):
-        await message.answer(
-            "Сначала нужно авторизоваться. Используйте /auth"
-        )
-        return
-    
+    """Главное меню"""
     from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
     
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="📚 Мои курсы"), KeyboardButton(text="🎓 Все курсы")],
-            [KeyboardButton(text="📖 Продолжить"), KeyboardButton(text="👤 Профиль")],
-            [KeyboardButton(text="🏠 Главное меню")]
+            [KeyboardButton(text="📚 Курсы"), KeyboardButton(text="📊 Прогресс")],
+            [KeyboardButton(text="👤 Профиль"), KeyboardButton(text="❓ Помощь")]
         ],
         resize_keyboard=True
     )
     
     await message.answer(
-        "📚 *Главное меню*\n\n"
-        "Выберите действие:",
+        "📱 *Главное меню*\n\n"
+        "Выберите раздел:",
         parse_mode="Markdown",
         reply_markup=keyboard
     )
 
-@dp.message(Command("courses"))
-@dp.message(F.text == "🎓 Все курсы")
-async def all_courses(message: Message):
-    user_id = message.from_user.id
-    
-    if not user_auth.get(user_id):
-        await message.answer("Сначала авторизуйтесь: /auth")
-        return
-    
-    # Простая разметка без звездочек внутри текста
-    response = (
-        "🎓 *Доступные курсы:*\n\n"
-        "1. *Python для начинающих*\n"
-        "   Рейтинг: 4.8/5\n"
-        "   Длительность: 12 часов\n"
-        "   Модулей: 8\n\n"
-        "2. *Django с нуля*\n"
-        "   Рейтинг: 4.9/5\n"
-        "   Длительность: 20 часов\n"
-        "   Модулей: 10\n\n"
-        "3. *Базы данных SQL*\n"
-        "   Рейтинг: 4.7/5\n"
-        "   Длительность: 15 часов\n"
-        "   Модулей: 7\n\n"
-        "Скоро будет интеграция с реальными курсами!"
-    )
-    
-    await message.answer(response, parse_mode="Markdown")
-
-@dp.message(Command("my_courses"))
-@dp.message(F.text == "📚 Мои курсы")
-async def my_courses(message: Message):
-    user_id = message.from_user.id
-    
-    if not user_auth.get(user_id):
-        await message.answer("Сначала авторизуйтесь: /auth")
-        return
-    
-    response = (
-        "📚 *Ваши курсы:*\n\n"
-        "1. *Python для начинающих*\n"
-        "   Прогресс: 60% завершено\n"
-        "   Последний урок: Вчера\n\n"
-        "2. *Django с нуля*\n"
-        "   Прогресс: 30% завершено\n"
-        "   Последний урок: 2 дня назад\n\n"
-        "Скоро будет интеграция с реальными данными!"
-    )
-    
-    await message.answer(response, parse_mode="Markdown")
-
-@dp.message(F.text == "📖 Продолжить")
-async def continue_learning(message: Message):
-    user_id = message.from_user.id
-    
-    if not user_auth.get(user_id):
-        await message.answer("Сначала авторизуйтесь: /auth")
-        return
-    
-    response = (
-        "📖 *Продолжаем обучение:*\n\n"
-        "*Python для начинающих*\n"
-        "Модуль 4: Работа с функциями\n\n"
-        "Завершено: 3 из 5 заданий\n"
-        "Время урока: 25 минут\n\n"
-        "Скоро можно будет продолжить прямо здесь!"
-    )
-    
-    await message.answer(response, parse_mode="Markdown")
-
-@dp.message(F.text == "👤 Профиль")
-async def profile(message: Message):
-    user_id = message.from_user.id
-    
-    if not user_auth.get(user_id):
-        await message.answer("Сначала авторизуйтесь: /auth")
-        return
-    
-    response = (
-        "👤 *Ваш профиль:*\n\n"
-        "Имя: Тестовый пользователь\n"
-        "Курсов: 2\n"
-        "Завершено: 1\n"
-        "В процессе: 1\n"
-        "Общий прогресс: 45%\n\n"
-        "Скоро будет реальный профиль!"
-    )
-    
-    await message.answer(response, parse_mode="Markdown")
-
-@dp.message(F.text == "🏠 Главное меню")
-async def main_menu(message: Message):
-    await cmd_menu(message)
-
 @dp.message(Command("help"))
 async def cmd_help(message: Message):
-    # Простая разметка без звездочек
-    help_text = (
-        "📚 *Помощь по боту Educa:*\n\n"
-        "*Авторизация:*\n"
-        "/start - Начало работы\n"
-        "/auth - Авторизация\n"
-        "/menu - Главное меню\n\n"
-        "*Обучение:*\n"
-        "/courses - Все курсы\n"
-        "/my_courses - Мои курсы\n"
-        "Продолжить - Продолжить обучение\n"
-        "Профиль - Ваш профиль\n\n"
-        "*Навигация:*\n"
-        "Главное меню - Вернуться в меню"
-    )
-    
-    await message.answer(help_text, parse_mode="Markdown")
+    """Помощь"""
+    help_text = """
+🤖 *Educa Bot - Помощь*
 
-@dp.message(Command("test"))
-async def cmd_test(message: Message):
-    await message.answer("✅ Бот работает!")
+*Основные команды:*
+/start - Начало работы
+/login - Войти в систему
+/courses - Показать курсы
+/menu - Главное меню
+
+*Дополнительно:*
+/help - Эта справка
+/status - Статус бота
+
+*Бот работает в Docker контейнере*
+Версия: 1.0.0
+"""
+    await message.answer(help_text, parse_mode="Markdown")
 
 @dp.message(Command("status"))
 async def cmd_status(message: Message):
+    """Статус бота"""
     user_id = message.from_user.id
-    is_auth = user_auth.get(user_id, False)
+    is_auth = user_id in user_sessions
     
-    status = "✅ Авторизован" if is_auth else "❌ Не авторизован"
-    await message.answer(f"Статус: {status}\nID: {user_id}")
+    status_text = f"""
+🤖 *Статус Educa Bot*
+
+👤 ID: {user_id}
+🔐 Auth: {'✅' if is_auth else '❌'}
+🐳 Docker: ✅
+🌐 API: {getattr(settings, 'API_BASE_URL', 'Not set')}
+
+Сессий: {len(user_sessions)}
+"""
+    await message.answer(status_text, parse_mode="Markdown")
+
+@dp.message(F.text == "📚 Курсы")
+async def courses_button(message: Message):
+    await all_courses(message)
+
+@dp.message()
+async def handle_unknown(message: Message):
+    """Неизвестные команды"""
+    await message.answer(
+        "Не понимаю команду. Используйте /help для списка команд."
+    )
 
 async def main():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
-    
-    print("=" * 50)
-    print("🤖 Бот запускается...")
-    print("Токен: 8553270096:AAF6P9wlhzrtx-zcrOO77J5uUS7BoTS_d3g")
-    print("=" * 50)
+    """Запуск бота"""
+    logger.info("=" * 50)
+    logger.info("🤖 Educa Telegram Bot запускается...")
+    logger.info(f"Токен: {'установлен' if TELEGRAM_TOKEN else 'НЕ УСТАНОВЛЕН!'}")
+    logger.info("=" * 50)
     
     try:
+        # Проверка бота
         me = await bot.get_me()
-        print(f"✅ Бот подключен: @{me.username} ({me.first_name})")
-        print("📝 Команды для теста:")
-        print("  /start - Приветствие")
-        print("  /auth - Авторизация")
-        print("  /menu - Главное меню")
-        print("  /status - Проверить статус")
-        print("=" * 50)
+        logger.info(f"✅ Бот: @{me.username} ({me.first_name})")
+        
+        # Запуск
+        await dp.start_polling(bot, skip_updates=True)
+        
     except Exception as e:
-        print(f"❌ Ошибка подключения: {e}")
-        return
-    
-    await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+        logger.error(f"❌ Ошибка: {e}")
+        raise

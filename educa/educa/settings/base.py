@@ -1,17 +1,27 @@
 from pathlib import Path
-
+import os
 from django.urls import reverse_lazy
+from dotenv import load_dotenv
+
+# Загрузка переменных окружения
+load_dotenv()
 
 LOGIN_REDIRECT_URL = reverse_lazy("student_course_list")
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = "uxeUXnTbz6E7LuGWlWB491Ldhf29SebVAIUA3aldGeqfK3LR8sgdIi21A8coNpp6wag"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "uxeUXnTbz6E7LuGWlWB491Ldhf29SebVAIUA3aldGeqfK3LR8sgdIi21A8coNpp6wag")
 
 ALLOWED_HOSTS = []
 
-BASE_API_URL = "http://localhost:8000/api"
-TELEGRAM_BOT_TOKEN = "8553270096:AAF6P9wlhzrtx-zcrOO77J5uUS7BoTS_d3g"
+# Telegram Bot Settings
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_BOT_API_KEY = os.getenv("TELEGRAM_BOT_API_KEY", "telegram_bot_key")
+TELEGRAM_BOT_API_SECRET = os.getenv("TELEGRAM_BOT_API_SECRET", "telegram_bot_secret")
+
+# API Settings
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000/api")
+SITE_URL = os.getenv("SITE_URL", "http://localhost:8000")
 
 INSTALLED_APPS = [
     "daphne",
@@ -30,20 +40,18 @@ INSTALLED_APPS = [
     "redisboard",
     "rest_framework",
     "chat.apps.ChatConfig",
+    "telegram_bot",  # Добавляем приложение бота
 ]
 
 MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    # 'django.middleware.cache.UpdateCacheMiddleware',
     "django.middleware.common.CommonMiddleware",
-    # 'django.middleware.cache.FetchFromCacheMiddleware',
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # 'courses.middleware.subdomain_course_middleware',
     'students.middleware.TrackStudentProgressMiddleware',
 ]
 
@@ -66,7 +74,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "educa.wsgi.application"
-
 ASGI_APPLICATION = "educa.asgi.application"
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -83,39 +90,36 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
 
 STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "static"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379",
+        "LOCATION": os.getenv("REDIS_URL", "redis://127.0.0.1:6379"),
     }
 }
 
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
-CACHE_MIDDLEWARE_ALIAS = "default"
-CACHE_MIDDLEWARE_SECONDS = 60 * 15  # 15 minutes
-CACHE_MIDDLEWARE_KEY_PREFIX = "educa"
+INTERNAL_IPS = ["127.0.0.1"]
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ]
 }
 
@@ -127,12 +131,12 @@ TINYMCE_DEFAULT_CONFIG = {
     "toolbar": "undo redo | bold italic | alignleft aligncenter alignright | link image | bullist numlist | code",
     "branding": False,
 }
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [os.getenv("REDIS_URL", "redis://127.0.0.1:6379")],
         },
     },
 }
-STATIC_ROOT = BASE_DIR / "static"

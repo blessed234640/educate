@@ -76,3 +76,20 @@ services:
     depends_on:
       - db
       - cache
+
+  telegram-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+    restart: unless-stopped
+    depends_on:
+      - cache
+      - web
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - API_BASE_URL=https://ethically-polished-brill.cloudpub.ru/api
+      - REDIS_URL=redis://cache:6379
+    volumes:
+      - .:/app
+    env_file:
+      - .env

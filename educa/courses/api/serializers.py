@@ -2,6 +2,7 @@ from django.db.models import Count
 from rest_framework import serializers
 
 from courses.models import Content, Course, Module, Subject
+from django.contrib.auth.models import User
 
 
 class ItemRelatedField(serializers.RelatedField):
@@ -23,8 +24,18 @@ class ModuleSerializer(serializers.ModelSerializer):
         fields = ["order", "title", "description"]
 
 
+class UserSimpleSerializer(serializers.ModelSerializer):
+    """Упрощенный сериализатор пользователя"""
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+
+
 class CourseSerializer(serializers.ModelSerializer):
     modules = ModuleSerializer(many=True, read_only=True)
+    total_students = serializers.SerializerMethodField()
+    is_enrolled = serializers.SerializerMethodField()
+    students = UserSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         model = Course
@@ -37,7 +48,20 @@ class CourseSerializer(serializers.ModelSerializer):
             "created",
             "owner",
             "modules",
+            "students",
+            "total_students",
+            "is_enrolled",
         ]
+    
+    def get_total_students(self, obj):
+        return obj.students.count()
+    
+    def get_is_enrolled(self, obj):
+        """Проверяет, записан ли текущий пользователь на курс"""
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.students.filter(id=request.user.id).exists()
+        return False
 
 
 class SubjectSerializer(serializers.ModelSerializer):
@@ -65,6 +89,8 @@ class ModuleWithContentsSerializer(serializers.ModelSerializer):
 
 class CourseWithContentsSerializer(serializers.ModelSerializer):
     modules = ModuleWithContentsSerializer(many=True)
+    total_students = serializers.SerializerMethodField()
+    is_enrolled = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -77,4 +103,15 @@ class CourseWithContentsSerializer(serializers.ModelSerializer):
             "created",
             "owner",
             "modules",
+            "total_students",
+            "is_enrolled",
         ]
+    
+    def get_total_students(self, obj):
+        return obj.students.count()
+    
+    def get_is_enrolled(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.students.filter(id=request.user.id).exists()
+        return False
